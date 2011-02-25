@@ -640,13 +640,13 @@
 
 (defn map-to-arg-string
   "Output a set of command line switches from a map"
-  [m & {:keys [underscore assign dash] :or {dash "--"} :as options}]
+  [m & {:keys [underscore assign dash] :or {:dash "--"}}]
   (apply
    str (interpose
         " "
-        (map
-         #(arg-string (key %) (val %) underscore assign dash)
-         (filter val m)))))
+        (map #(arg-string
+               (first %) (second %) underscore assign dash)
+             m))))
 
 (defn option-args
   "Output a set of command line switches from a sequence of options"
