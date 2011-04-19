@@ -273,9 +273,9 @@ fi"
   (is (= "ls | ls"
          (script (pipe (ls) (ls))))))
 
-(script/defscript xfn [& args])
-(defimpl xfn :default [& args]
-  ("xfn" ~args))
+(deftest empty?-test
+  (is (= "if [ -z ${a} ]; then echo true;fi"
+         (script (if (empty? @a) (println true))))))
 
 (deftest unquote-splicing-test
   (is (= "a b c" (script ~@["a" "b" "c"])))
@@ -291,10 +291,13 @@ fi"
     (is (= "" (script ~@x))))
   (let [fx (fn [] ["a" "b" "c"])]
     (is (= "a b c" (script ~@(fx)))))
-  (let [x nil]
-    (is (= "xfn null" (script (xfn ~@x)))))
-  (let [x [:a 1]]
-    (is (= "xfn a 1" (script (xfn ~@x))))))
+  (let [xfn (script/script-fn [& args])]
+    (script/defimpl xfn :default [& args]
+      ("xfn" ~args))
+    (let [x nil]
+      (is (= "xfn" (script (xfn ~@x)))))
+    (let [x [:a 1]]
+      (is (= "xfn a 1" (script (xfn ~@x)))))))
 
 (test-utils/with-console-logging-threshold :error
   (script/defscript x [a])
