@@ -7,23 +7,11 @@
    The result of a `script` form is a string."
   (:require
    [pallet.common.deprecate :as deprecate]
+   [pallet.common.resource :as resource]
    [clojure.string :as string]
    [clojure.walk :as walk]
    [clojure.contrib.condition :as condition]
    [clojure.contrib.logging :as logging]))
-
-(defn slurp-resource
-  "Reads the resource named by name using the encoding enc into a string
-   and returns it."
-  ([name] (slurp-resource
-           name (.name (java.nio.charset.Charset/defaultCharset))))
-  ([#^String name #^String enc]
-     (let [stream (-> (.getContextClassLoader (Thread/currentThread))
-                      (.getResourceAsStream name)
-                      (java.io.InputStreamReader.))]
-       (when stream
-         (with-open [stream stream]
-           (slurp stream))))))
 
 (defn underscore [s]
   "Change - to _"
@@ -69,7 +57,7 @@
   ^{:doc
     "bash library for associative arrays in bash 3. You need to include this in
      your script if you use associative arrays, e.g. with `assoc!`."}
-  hashlib (slurp-resource "stevedore/hashlib.bash"))
+  hashlib (resource/slurp "stevedore/hashlib.bash"))
 
 (def statement-separator "\n")
 
