@@ -1,0 +1,248 @@
+<html>
+  <head>
+    <title>pallet.script API reference (stevedore)</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <!-- TODO: are we using these (from clojure.org)? If so, add the files -->
+    <script src="file/view/code_highlighter.js" type="text/javascript"></script>
+    <script src="file/view/clojure.js" type="text/javascript"></script>
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">stevedore</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <a class="wiki_link" href="index.html">Overview</a><br />
+    <a class="wiki_link" href="api-index.html">API Index</a><br />
+    <a class="wiki_link" href="#">Namespaces:</a>
+    <ul id="left-sidebar-list">
+      <li><a href="pallet.script-api.html" class="wiki_link">pallet.script</a></li><li><a href="pallet.stevedore-api.html" class="wiki_link">pallet.stevedore</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#toc0">Overview</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/*script-context*">*script-context*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/defimpl">defimpl</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/defscript">defscript</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/dispatch">dispatch</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/implement">implement</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/invoke">invoke</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/script-fn">script-fn</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/script-fn*">script-fn*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/script-fn-dispatch">script-fn-dispatch</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/with-script-context">with-script-context</a>
+    </div>
+    <br />
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="namespace-name">pallet.script</span></h1>
+by <span id="author">Unknown</span><br />
+<br />Usage:
+<pre>
+(ns your-namespace
+  (:require <span id="long-name">pallet.script</span>))
+</pre><pre>
+</pre><h2>Overview</h2>
+<pre id="namespace-docstr">Base infrastructure for script generation, and operating system abstraction.
+
+`defscript` defines an abstract script function, that can be implemented
+for different operating system (and version) targets.
+
+`implement` is used to add an implementation to a function defined with
+`defscript`.
+
+Dispatch of `defscript` is based on an implementation's specialisers vector.
+All elements of the specialisers vector must match `*script-context*`.  The
+specialisers vector may contain keywords that match if the are in
+`*script-context*`, sets of keywords that match if any of the set values are
+in `*script-context*`, or functions that will be passed `*script-context*` as
+an argument and should return a truth value indicating whether a match
+occured.
+
+Mutiple implementations may match the `*script-context*` vector, and the
+best fit is determined by the highest number of matching specialiser
+functions, with ties decided by the earliest defined implementation.</pre>
+<br />
+<h2>Public Variables and Functions</h2>
+<div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/*script-context*">*script-context*</h2>
+  <span id="var-type">var</span><br />
+  <pre id="var-usage"></pre>
+  <pre id="var-docstr">Determine the target to generate script for.
+`defscript` implementations are dispatched on this.  The value should
+be a vector, containing os-family values (e.g. `:ubuntu`), os-family and
+os-version values (e.g. `:centos-5.3`), or other keywords.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/defimpl">defimpl</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (defimpl script specialisers [&amp; args] &amp; body)
+</pre>
+  <pre id="var-docstr">Define a script function implementation for the given `specialisers`.
+
+`specialisers` should be the :default keyword, or a vector.  The
+`specialisers` vector may contain keywords, a set of keywords that provide an
+inclusive `or` match, or functions that return a truth value indication
+whether the implementation is a match for the script template passed as the
+function's first argument.
+
+`body` is wrapped in an implicit `script` form.
+
+    (pallet.script/defscript ls [&amp; args])
+    (defimpl ls :default [&amp; args] (ls ~@args))
+    (defimpl ls [:windows] [&amp; args] (dir ~@args))</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/defscript">defscript</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (defscript fn-name &amp; args)
+</pre>
+  <pre id="var-docstr">Define a top level var with an abstract script function, that can be
+implemented differently for different operating systems.  Calls to functions
+defined by `defscript` are dispatched based on the `*script-context*`
+vector.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/dispatch">dispatch</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (dispatch script args)
+       (dispatch script args file line)
+</pre>
+  <pre id="var-docstr">Invoke `script` with the given `args`.  The implementations of `script` is
+found based on the current `*script-context*` value.  If no matching
+implementation is found, then a :no-script-implementation condition
+is raised.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/implement">implement</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (implement script specialisers f)
+</pre>
+  <pre id="var-docstr">Add an implementation of script for the given specialisers.
+The default implementation can be set by passing :default as the
+`specialisers` argument. `specialisers` should be the :default keyword, or a
+vector.  The `specialisers` vector may contain keywords, a set of keywords
+that provide an inclusive `or` match, or functions that return a truth value
+indication whether the implementation is a match for the `*script-context*`
+passed as the function's first argument.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/invoke">invoke</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (invoke script args)
+       (invoke script args file line)
+</pre>
+  <pre id="var-docstr">Invoke `script` with the given `args`.  The implementations of `script` is
+found based on the current `*script-context*` value.  If no matching
+implementation is found, then nil is returned.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/script-fn">script-fn</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (script-fn [&amp; args])
+       (script-fn fn-name [&amp; args])
+</pre>
+  <pre id="var-docstr">Define an abstract script function, that can be implemented differently for
+different operating systems. Calls to functions defined by `script-fn` are
+dispatched based on the `*script-context*` vector.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/script-fn*">script-fn*</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (script-fn* fn-name args)
+</pre>
+  <pre id="var-docstr">Define an abstract script function, that can be implemented differently for
+different operating systems. Calls to functions defined by `script-fn*` are
+dispatched based on the `*script-context*` vector.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/script-fn-dispatch">script-fn-dispatch</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (script-fn-dispatch script-fn args ns file line)
+</pre>
+  <pre id="var-docstr">Optional dispatching of script functions</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/with-script-context">with-script-context</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-script-context template &amp; body)
+</pre>
+  <pre id="var-docstr">Specify the target for script generation. `template` should be a vector of
+os-family, os-family and os-version, or other keywords. </pre>
+  
+</div>
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">Copyright (c) 2010 Hugo Duncan</div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>

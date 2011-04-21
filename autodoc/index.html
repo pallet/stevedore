@@ -1,0 +1,124 @@
+<html>
+  <head>
+    <title>stevedore - Overview</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <!-- TODO: are we using these (from clojure.org)? If so, add the files -->
+    <script src="file/view/code_highlighter.js" type="text/javascript"></script>
+    <script src="file/view/clojure.js" type="text/javascript"></script>
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">stevedore</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <a class="wiki_link" href="index.html">Overview</a><br />
+    <a class="wiki_link" href="api-index.html">API Index</a><br />
+    <a class="wiki_link" href="#">Namespaces:</a>
+    <ul id="left-sidebar-list">
+      <li><a href="pallet.script-api.html" class="wiki_link">pallet.script</a></li><li><a href="pallet.stevedore-api.html" class="wiki_link">pallet.stevedore</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#pallet.script">pallet.script</a>
+    
+    <br />
+  </div><div style="margin-left: 1em;" class="toc-section">
+    <a href="#pallet.stevedore">pallet.stevedore</a>
+    
+    <br />
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="toc0">An Overview of the <span id="header-project">stevedore</span> API</h1>
+<br />
+<div id="project-description">Stevedore - embed shell script in clojure</div>
+<br />
+<div id="namespace-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script">pallet.script</h2>
+  by <span id="author">unknown author</span><br />
+  <a href="pallet.script-api.html" id="api-link">Detailed API documentation</a><br />
+  <pre id="namespace-docstr">Base infrastructure for script generation, and operating system abstraction.
+
+`defscript` defines an abstract script function, that can be implemented
+for different operating system (and version) targets.
+
+`implement` is used to add an implementation to a function defined with
+`defscript`.
+
+Dispatch of `defscript` is based on an implementation's specialisers vector.
+All elements of the specialisers vector must match `*script-context*`.  The
+specialisers vector may contain keywords that match if the are in
+`*script-context*`, sets of keywords that match if any of the set values are
+in `*script-context*`, or functions that will be passed `*script-context*` as
+an argument and should return a truth value indicating whether a match
+occured.
+
+Mutiple implementations may match the `*script-context*` vector, and the
+best fit is determined by the highest number of matching specialiser
+functions, with ties decided by the earliest defined implementation.</pre>
+  
+  Public variables and functions:
+  <span id="var-link"><a href="pallet.script-api.html#pallet.script/*script-context*" id="var-tag">*script-context*</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/defimpl" id="var-tag">defimpl</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/defscript" id="var-tag">defscript</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/dispatch" id="var-tag">dispatch</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/implement" id="var-tag">implement</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/invoke" id="var-tag">invoke</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/script-fn" id="var-tag">script-fn</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/script-fn*" id="var-tag">script-fn*</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/script-fn-dispatch" id="var-tag">script-fn-dispatch</a> </span><span id="var-link"><a href="pallet.script-api.html#pallet.script/with-script-context" id="var-tag">with-script-context</a> </span><br />
+  
+</div><div id="namespace-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore">pallet.stevedore</h2>
+  by <span id="author">unknown author</span><br />
+  <a href="pallet.stevedore-api.html" id="api-link">Detailed API documentation</a><br />
+  <pre id="namespace-docstr">Embed shell script in clojure.
+
+Shell script is embedded by wrapping in the `script` macro.
+    (script (ls)) =&gt; "ls"
+
+The result of a `script` form is a string.</pre>
+  
+  Public variables and functions:
+  <span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/*script-fn-dispatch*" id="var-tag">*script-fn-dispatch*</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/chain-commands" id="var-tag">chain-commands</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/chain-commands*" id="var-tag">chain-commands*</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/chained-script" id="var-tag">chained-script</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/checked-commands" id="var-tag">checked-commands</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/checked-commands*" id="var-tag">checked-commands*</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/checked-script" id="var-tag">checked-script</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/comma-list" id="var-tag">comma-list</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/do-script" id="var-tag">do-script</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/do-script*" id="var-tag">do-script*</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/emit" id="var-tag">emit</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/emit-special" id="var-tag">emit-special</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/hashlib" id="var-tag">hashlib</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/map-to-arg-string" id="var-tag">map-to-arg-string</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/option-args" id="var-tag">option-args</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/script" id="var-tag">script</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/script-fn-dispatch!" id="var-tag">script-fn-dispatch!</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/script-fn-dispatch-none" id="var-tag">script-fn-dispatch-none</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/slurp-resource" id="var-tag">slurp-resource</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/splice-list" id="var-tag">splice-list</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/statement" id="var-tag">statement</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/substring" id="var-tag">substring</a> </span><span id="var-link"><a href="pallet.stevedore-api.html#pallet.stevedore/with-line-number" id="var-tag">with-line-number</a> </span><br />
+  
+</div>
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">Copyright (c) 2010 Hugo Duncan</div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>

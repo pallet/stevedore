@@ -1,0 +1,353 @@
+<html>
+  <head>
+    <title>pallet.stevedore API reference (stevedore)</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <!-- TODO: are we using these (from clojure.org)? If so, add the files -->
+    <script src="file/view/code_highlighter.js" type="text/javascript"></script>
+    <script src="file/view/clojure.js" type="text/javascript"></script>
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">stevedore</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <a class="wiki_link" href="index.html">Overview</a><br />
+    <a class="wiki_link" href="api-index.html">API Index</a><br />
+    <a class="wiki_link" href="#">Namespaces:</a>
+    <ul id="left-sidebar-list">
+      <li><a href="pallet.script-api.html" class="wiki_link">pallet.script</a></li><li><a href="pallet.stevedore-api.html" class="wiki_link">pallet.stevedore</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#toc0">Overview</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/*script-fn-dispatch*">*script-fn-dispatch*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/chain-commands">chain-commands</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/chain-commands*">chain-commands*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/chained-script">chained-script</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/checked-commands">checked-commands</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/checked-commands*">checked-commands*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/checked-script">checked-script</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/comma-list">comma-list</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/do-script">do-script</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/do-script*">do-script*</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/emit">emit</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/emit-special">emit-special</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/hashlib">hashlib</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/map-to-arg-string">map-to-arg-string</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/option-args">option-args</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/script">script</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/script-fn-dispatch!">script-fn-dispatch!</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/script-fn-dispatch-none">script-fn-dispatch-none</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/slurp-resource">slurp-resource</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/splice-list">splice-list</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/statement">statement</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/substring">substring</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.stevedore/with-line-number">with-line-number</a>
+    </div>
+    <br />
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="namespace-name">pallet.stevedore</span></h1>
+by <span id="author">Unknown</span><br />
+<br />Usage:
+<pre>
+(ns your-namespace
+  (:require <span id="long-name">pallet.stevedore</span>))
+</pre><pre>
+</pre><h2>Overview</h2>
+<pre id="namespace-docstr">Embed shell script in clojure.
+
+Shell script is embedded by wrapping in the `script` macro.
+    (script (ls)) =&gt; "ls"
+
+The result of a `script` form is a string.</pre>
+<br />
+<h2>Public Variables and Functions</h2>
+<div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/*script-fn-dispatch*">*script-fn-dispatch*</h2>
+  <span id="var-type">var</span><br />
+  <pre id="var-usage"></pre>
+  <pre id="var-docstr">Script function dispatch.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/chain-commands">chain-commands</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (chain-commands &amp; scripts)
+</pre>
+  <pre id="var-docstr">Chain commands together with &amp;&amp;.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/chain-commands*">chain-commands*</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (chain-commands* scripts)
+</pre>
+  <pre id="var-docstr">Chain commands together with &amp;&amp;.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/chained-script">chained-script</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (chained-script &amp; forms)
+</pre>
+  <pre id="var-docstr">Takes one or more forms. Returns a string of the forms translated into a
+chained shell script command.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/checked-commands">checked-commands</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (checked-commands message &amp; cmds)
+</pre>
+  <pre id="var-docstr">Wrap a command in a code that checks the return value. Code to output the
+messages is added before the command.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/checked-commands*">checked-commands*</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (checked-commands* message cmds)
+</pre>
+  <pre id="var-docstr">Wrap a command in a code that checks the return value. Code to output the
+messages is added before the command.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/checked-script">checked-script</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (checked-script message &amp; forms)
+</pre>
+  <pre id="var-docstr">Takes one or more forms. Returns a string of the forms translated into
+shell scrip.  Wraps the expression in a test for the result status.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/comma-list">comma-list</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (comma-list coll)
+</pre>
+  <pre id="var-docstr">Emit a collection as a parentesised, comma separated list.
+(comma-list [a b c]) =&gt; "(a, b, c)"</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/do-script">do-script</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (do-script &amp; scripts)
+</pre>
+  <pre id="var-docstr">Concatenate multiple scripts.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/do-script*">do-script*</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (do-script* scripts)
+</pre>
+  <pre id="var-docstr">Concatenate multiple scripts.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/emit">emit</h2>
+  <span id="var-type">multimethod</span><br />
+  <pre id="var-usage">No usage documentation available</pre>
+  <pre id="var-docstr">Emit a shell expression as a string. Dispatched on the :type of the
+expression.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/emit-special">emit-special</h2>
+  <span id="var-type">multimethod</span><br />
+  <pre id="var-usage">No usage documentation available</pre>
+  <pre id="var-docstr">Emit a shell form as a string. Dispatched on the first element of the form.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/hashlib">hashlib</h2>
+  <span id="var-type">var</span><br />
+  <pre id="var-usage"></pre>
+  <pre id="var-docstr">bash library for associative arrays in bash 3. You need to include this in
+your script if you use associative arrays, e.g. with `assoc!`.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/map-to-arg-string">map-to-arg-string</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (map-to-arg-string m &amp; {:keys [underscore assign dash], :or {dash --}})
+</pre>
+  <pre id="var-docstr">Output a set of command line switches from a map</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/option-args">option-args</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (option-args {:as m})
+</pre>
+  <pre id="var-docstr">Output a set of command line switches from a sequence of options</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/script">script</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (script &amp; forms)
+</pre>
+  <pre id="var-docstr">Takes one or more forms. Returns a string of the forms translated into
+shell script.
+    (script
+      (println "hello")
+      (ls -l "*.sh"))</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/script-fn-dispatch!">script-fn-dispatch!</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (script-fn-dispatch! f)
+</pre>
+  <pre id="var-docstr">Set the script-fn dispatch function</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/script-fn-dispatch-none">script-fn-dispatch-none</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (script-fn-dispatch-none name args ns file line)
+</pre>
+  <pre id="var-docstr">Script function dispatch. This implementation does nothing.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/slurp-resource">slurp-resource</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (slurp-resource name)
+       (slurp-resource name enc)
+</pre>
+  <pre id="var-docstr">Reads the resource named by name using the encoding enc into a string
+and returns it.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/splice-list">splice-list</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (splice-list coll)
+</pre>
+  <pre id="var-docstr">Emit a collection as a space separated list.
+(splice-list [a b c]) =&gt; "a b c"</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/statement">statement</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (statement expr)
+</pre>
+  <pre id="var-docstr">Emit an expression as a valid shell statement, with separator.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/substring">substring</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (substring n s)
+</pre>
+  <pre id="var-docstr">Drops first n characters from s.  Returns an empty string if n is
+greater than the length of s.</pre>
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.stevedore/with-line-number">with-line-number</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-line-number [file line] &amp; body)
+</pre>
+  <pre id="var-docstr">Provide the source file and line number for use in reporting.</pre>
+  
+</div>
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">Copyright (c) 2010 Hugo Duncan</div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>
