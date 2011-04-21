@@ -473,16 +473,28 @@
   [type [chain-and & exprs]]
   (string/join " && " (map emit exprs)))
 
+(defn- shflags-declare [type long short doc default]
+  "Helper for shFlags flag declarations"
+  (str "DEFINE_" (name type) " "
+       (apply str (interpose " " (map add-quotes [long default doc short])))))
+
 (defn- emit-function [name sig body]
   (assert (or (symbol? name) (nil? name)))
   (assert (vector? sig))
-  (str "function " name "() {\n"
-       (when (not (empty? sig))
-         (str
-          (string/join "\n" (map #(str (emit %1) "=" "$" %2) sig (iterate inc 1)))
-          \newline))
-       (emit-do body)
-       " }\n"))
+  (let [[args flags] (split-with symbol? sig)]
+    (assert (or (empty? flags) (every? vector? flags)))
+    (str "function " name "() {\n"
+         (when (not (empty? flags))
+           (string/join "\n"
+             [(string/join "\n" (map (partial apply shflags-declare) flags))
+              "FLAGS \"$@\" || exit 1"
+              "eval set -- \"${FLAGS_ARGV}\"\n"]))
+         (when (not (empty? args))
+           (str
+             (string/join "\n" (map #(str (emit %1) "=" "$" %2) args (iterate inc 1)))
+             \newline))
+         (emit-do body)
+         " }\n")))
 
 (defmethod emit-special 'defn [type [fn & expr]]
   (if (symbol? (first expr))
