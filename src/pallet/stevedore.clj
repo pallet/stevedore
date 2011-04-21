@@ -680,9 +680,9 @@
   (apply
    str (interpose
         " "
-        (map #(arg-string
-               (first %) (second %) underscore assign dash)
-             m))))
+        (map
+          #(arg-string (key %) (val %) underscore assign dash)
+          (filter val m)))))
 
 (defn option-args
   "Output a set of command line switches from a sequence of options"
