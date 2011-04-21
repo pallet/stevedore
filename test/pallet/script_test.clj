@@ -1,25 +1,23 @@
 (ns pallet.script-test
-  (:use pallet.script)
-  (:require [pallet.target :as target])
-  (:use clojure.test
-        pallet.test-utils))
+  (:use
+   pallet.script
+   clojure.test))
 
-(with-private-vars [pallet.script [matches? more-explicit?]]
-  (deftest matches?-test
-    (with-script-context [:ubuntu]
-      (is (matches? [:ubuntu]))
-      (is (not (matches? [:fedora])))
-      (is (not (matches? [:ubuntu :smallest]))))
-    (with-script-context [:ubuntu :smallest]
-      (is (matches? [:ubuntu]))
-      (is (matches? [:smallest]))
-      (is (not (matches? [:fedora])))
-      (is (matches? [:ubuntu :smallest]))))
+(deftest matches?-test
+  (with-script-context [:ubuntu]
+    (is (#'pallet.script/matches? [:ubuntu]))
+    (is (not (#'pallet.script/matches? [:fedora])))
+    (is (not (#'pallet.script/matches? [:ubuntu :smallest]))))
+  (with-script-context [:ubuntu :smallest]
+    (is (#'pallet.script/matches? [:ubuntu]))
+    (is (#'pallet.script/matches? [:smallest]))
+    (is (not (#'pallet.script/matches? [:fedora])))
+    (is (#'pallet.script/matches? [:ubuntu :smallest]))))
 
-  (deftest more-explicit?-test
-    (is (more-explicit? :default [:anything]))
-    (is (more-explicit? [:something] [:anything :longer]))
-    (is (not (more-explicit? [:something :longer] [:anything])))))
+(deftest more-explicit?-test
+  (is (#'pallet.script/more-explicit? :default [:anything]))
+  (is (#'pallet.script/more-explicit? [:something] [:anything :longer]))
+  (is (not (#'pallet.script/more-explicit? [:something :longer] [:anything]))))
 
 (deftest script-fn-test
   (testing "no varargs"

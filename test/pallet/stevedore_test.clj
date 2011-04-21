@@ -1,14 +1,28 @@
 (ns pallet.stevedore-test
-  (:use pallet.stevedore)
   (:use
-   clojure.test
-   pallet.test-utils)
+   pallet.stevedore
+   clojure.test)
   (:require
    [pallet.script :as script]
-   [pallet.utils :as utils]
-   [pallet.test-utils :as test-utils]))
+   [pallet.common.filesystem :as filesystem]
+   [pallet.common.logging.log4j :as log4j]
+   [pallet.common.shell :as shell]
+   [clojure.contrib.logging :as logging]))
 
-(use-fixtures :once with-ubuntu-script-template)
+(defmacro bash-out
+  "Check output of bash. Implemented as a macro so that errors appear on the
+   correct line."
+  ([str] `(bash-out ~str 0 ""))
+  ([str exit err-msg]
+     `(let [r# (shell/bash ~str)]
+        (when-not (= ~exit (:exit r#))
+          (logging/error
+           (format
+            "Unexpected exit status:\n:cmd %s\n:out %s\n:err %s"
+            ~str (:out r#) (:err r#))))
+        (is (= ~err-msg (:err r#)))
+        (is (= ~exit (:exit r#)))
+        (:out r#))))
 
 (defn strip-ws
   "strip extraneous whitespace so tests don't fail because of differences in
@@ -299,6 +313,6 @@ fi"
     (let [x [:a 1]]
       (is (= "xfn a 1" (script (xfn ~@x)))))))
 
-(test-utils/with-console-logging-threshold :error
+(log4j/with-appender-threshold [:error]
   (script/defscript x [a])
   (defimpl x :default [a] a))

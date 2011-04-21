@@ -6,11 +6,28 @@
 
    The result of a `script` form is a string."
   (:require
-   [pallet.utils :as utils]
+   [pallet.common.deprecate :as deprecate]
    [clojure.string :as string]
    [clojure.walk :as walk]
    [clojure.contrib.condition :as condition]
    [clojure.contrib.logging :as logging]))
+
+(defn slurp-resource
+  "Reads the resource named by name using the encoding enc into a string
+   and returns it."
+  ([name] (slurp-resource
+           name (.name (java.nio.charset.Charset/defaultCharset))))
+  ([#^String name #^String enc]
+     (let [stream (-> (.getContextClassLoader (Thread/currentThread))
+                      (.getResourceAsStream name)
+                      (java.io.InputStreamReader.))]
+       (when stream
+         (with-open [stream stream]
+           (slurp stream))))))
+
+(defn underscore [s]
+  "Change - to _"
+  (string/join str "_"  (string/split s "-")))
 
 (def
   ^{:doc "Used to capture the namespace in which `script` is invoked."
@@ -52,7 +69,7 @@
   ^{:doc
     "bash library for associative arrays in bash 3. You need to include this in
      your script if you use associative arrays, e.g. with `assoc!`."}
-  hashlib (utils/slurp-resource "stevedore/hashlib.bash"))
+  hashlib (slurp-resource "stevedore/hashlib.bash"))
 
 (def statement-separator "\n")
 
@@ -661,7 +678,7 @@
 ;;; script argument helpers
 (defn arg-string
   [option argument do-underscore do-assign dash]
-  (let [opt (if do-underscore (utils/underscore (name option)) (name option))]
+  (let [opt (if do-underscore (underscore (name option)) (name option))]
     (if argument
       (if (> (.length opt) 1)
         (str dash opt (if-not (= argument true)
@@ -692,7 +709,7 @@
   [script specialisers [& args] & body]
   (require 'pallet.script)
   `(do
-     (utils/deprecated-macro
+     (deprecate/deprecated-macro
       ~&form
-      (utils/deprecate-rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
+      (deprecate/rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
      (pallet.script/defimpl ~script ~specialisers [~@args] ~@body)))
