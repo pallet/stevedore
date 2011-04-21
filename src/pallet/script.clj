@@ -19,6 +19,7 @@
    best fit is determined by the highest number of matching specialiser
    functions, with ties decided by the earliest defined implementation."
   (:require
+   [pallet.common.deprecate :as deprecate]
    [pallet.stevedore :as stevedore]
    [clojure.contrib.def :as def]
    [clojure.contrib.condition :as condition]
@@ -38,6 +39,19 @@
   [template & body]
   `(binding [*script-context* (filter identity ~template)]
      ~@body))
+
+(defmacro with-template
+  "Specify the target for script generation. `template` should be a vector of
+   os-family, os-family and os-version, or other keywords.
+   DEPRECATED - see `with-script-context`"
+  {:deprecated "0.5.0"}
+  [template & body]
+  `(do
+     (deprecate/deprecated-macro
+      ~&form
+      (deprecate/rename
+       'pallet.script/with-template 'pallet.script/with-script-context))
+     (with-script-context ~template ~@body)))
 
 (defn- print-args
   "Utitlity function to print arguments for logging"
