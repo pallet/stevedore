@@ -60,7 +60,7 @@
        "\n"))
 
 (defn- shflags-doc-string [doc]
-  (assert (or (string? doc)  (nil? doc)))
+  (assert (string? doc))
   (str "FLAGS_HELP=" (add-quotes doc) "\n"))
 
 (defn- shflags-setup []
@@ -80,7 +80,7 @@
 (defn shflags-make-declaration [doc? sig]
   "Returns a shflags declaration"
   (let [[args flags] (deconstruct-sig sig)]
-    (str (when (seq doc?)
+    (str (when (string? doc?)
            (str (shflags-doc-string doc?)))
          (when (seq flags)
            (str (apply str (map (partial apply shflags-declare) flags))
@@ -510,32 +510,23 @@
   [type [chain-and & exprs]]
   (string/join " && " (map emit exprs)))
 
-(defn- emit-function [name? doc? sig body]
-  (assert (or (symbol? name?) (nil? name?)))
-  (assert (not (and (nil? name?) (seq doc?))))
-  (str "function " name? "() {\n"
+(defn- emit-function [name doc? sig body]
+  (assert (symbol? name))
+  (str name "() {\n"
        (shflags-make-declaration doc? sig)
        (emit-do body)
-       " }\n"))
+       "}\n"))
 
 (defmethod emit-special 'defn [type [fn & expr]]
-  (if (symbol? (first expr))
+  (let [name (first expr)]
     (if (string? (second expr))
-      ;; With doc string
-      (let [name (first expr)
-            doc (second expr)
+      (let [doc (second expr)
             signature (second (next expr))
             body (rest (rest (rest expr)))]
         (emit-function name doc signature body))
-      ;; No doc string
-      (let [name (first expr)
-            signature (second expr)
+      (let [signature (second expr)
             body (rest (rest expr))]
-        (emit-function name nil signature body)))
-    ;; Anonymous functions can't have doc strings
-    (let [signature (first expr)
-          body (rest expr)]
-      (emit-function nil nil signature body))))
+        (emit-function name nil signature body)))))
 
 (defn emit-s-expr [expr]
   (if (symbol? (first expr))
