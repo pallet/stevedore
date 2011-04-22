@@ -73,7 +73,7 @@
          (script (str foo bar)))))
 
 (deftest test-fn
-    (is (thrown? clojure.contrib.condition.Condition
+    (is (thrown? java.lang.AssertionError
           (strip-ws (script (defn [x y]
                               (foo a) (bar b)))))
         "anonymous")
