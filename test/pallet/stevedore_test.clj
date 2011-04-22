@@ -73,18 +73,34 @@
          (script (str foo bar)))))
 
 (deftest test-fn
+  (testing "anonymous"
+    (is (= "function () {\nx=$1\ny=$2\nfoo a\nbar b\n }"
+           (strip-ws (script (defn [x y] 
+                               (foo a) (bar b)))))))
   (testing "without flags"
     (is (= "function foo() {\nx=$1\ny=$2\nfoo a\nbar b\n }"
-           (strip-ws (script (defn foo [x y] (foo a) (bar b)))))))
+           (strip-ws (script (defn foo [x y] 
+                               (foo a) (bar b)))))))
   (testing "with flags only"
     (is (= "function foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nfoo a\nbar b\n }"
-           (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]] (foo a) (bar b)))))))
+           (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b)))))))
   (testing "with flags and arguments"
     (is (= "function foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n }"
-           (strip-ws (script (defn foo [x y [:string "host" "h" "Doc" "default"]] (foo a) (bar b))))))))
+           (strip-ws (script (defn foo [x y 
+                                        [:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b)))))))
+  (testing "with docstring and arguments"
+    (is (= "function foo() {\nFLAGS_HELP=\"This is doc\"\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n }"
+           (strip-ws (script (defn foo 
+                               "This is doc" 
+                               [x y 
+                                [:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b))))))))
 
 (deftest test-aget
   (is (= "${foo[2]}" (script (aget foo 2)))))
+
 
 (deftest test-aset
   (is (= "foo[2]=1" (script (aset foo 2 1)))))
