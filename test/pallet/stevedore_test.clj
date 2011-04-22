@@ -245,7 +245,7 @@ fi"
   (let [stuff (quote (do
                        (local x 3)
                        (local y 4)))]
-    (is (= "function foo() {\nx=$1\nlocal x=3\nlocal y=4\n }"
+    (is (= "foo() {\nx=$1\nlocal x=3\nlocal y=4\n}"
            (strip-ws (script (defn foo [x] ~stuff)))))))
 
 (deftest defvar-test

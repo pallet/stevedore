@@ -31,7 +31,7 @@
                  [a b c
                   [:integer asdf a "asdf" "e"]]))))
       "With docstring")
-  (is (= "DEFINE_integer \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
+  (is (= "DEFINE_string \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
           (with-script-context [:default]
             (stevedore/script
               (~declare-arguments
