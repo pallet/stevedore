@@ -56,3 +56,12 @@
               (~declare-arguments
                  []))))
       "Empty args"))
+
+(deftest test-java-client
+  (is (= "java -server -classpath \"${CLOJURE_JARS}:${VIMCLOJURE_JAR}\" vimclojure.nailgun.NGServer ${port}"
+         (with-script-context [:default]
+           (stevedore/script
+             (~java :classpath [@CLOJURE_JARS @VIMCLOJURE_JAR]
+                :server true
+                :main-class vimclojure.nailgun.NGServer
+                :args @port))))))

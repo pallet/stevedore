@@ -12,3 +12,17 @@
                       args
                       [nil (first args)])]
      (stevedore/shflags-make-declaration doc? sig)))
+
+(script/defscript java
+  "Command for the java client"
+  [& {:keys [main-class jar args classpath server]}])
+(script/defimpl java :default 
+  [& {:keys [main-class jar args classpath server client] :or {main-class "" args ""}}]
+  (java
+    ~(stevedore/map-to-arg-string {:client client
+                         :server server
+                         :classpath (apply str (interpose ":" (map stevedore/emit classpath)))
+                         :jar jar}
+       :dash "-")
+    ~main-class ~args))
+
