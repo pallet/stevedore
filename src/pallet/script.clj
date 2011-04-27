@@ -21,6 +21,7 @@
   (:require
    [pallet.common.deprecate :as deprecate]
    [pallet.stevedore :as stevedore]
+   [pallet.stevedore.bash]
    [clojure.contrib.def :as def]
    [clojure.contrib.condition :as condition]
    [clojure.contrib.logging :as logging])
@@ -221,4 +222,6 @@
 
 ;;; Link stevedore to the dispatch mechanism
 
-(stevedore/script-fn-dispatch! script-fn-dispatch)
+;TODO move this function
+;(stevedore/script-fn-dispatch! script-fn-dispatch)
+(pallet.stevedore/script-fn-dispatch! script-fn-dispatch)

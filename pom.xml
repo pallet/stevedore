@@ -90,6 +90,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>vimclojure</groupId>
+      <artifactId>server</artifactId>
+      <version>2.2.0</version>
+    </dependency> 
+
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
     </dependency>
