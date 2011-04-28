@@ -12,11 +12,9 @@
    [clojure.contrib.def :as def]
    [clojure.contrib.logging :as logging]
    [clojure.string :as string]
-   [clojure.walk :as walk]))
-
-(defn underscore [s]
-  "Change - to _"
-  (string/join str "_"  (string/split s "-")))
+   [clojure.walk :as walk])
+  (:use
+   [pallet.common.string :only [add-quotes substring underscore]]))
 
 (def
   ^{:doc "Used to capture the namespace in which `script` is invoked."
@@ -51,19 +49,6 @@
   `(do
      (binding [*stevedore-impl* ~impl]
        ~@body)))
-
-(defn ^String substring
-  "Drops first n characters from s.  Returns an empty string if n is
-  greater than the length of s."
-  [n ^String s]
-  (if (< (count s) n)
-    ""
-    (.substring s n)))
-
-(defn- ^String add-quotes
-  "Add quotes to the argument s as a string"
-  [s]
-  (str "\"" s "\""))
 
 (defn- shflags-declare [type long short doc default]
   "Helper for shFlags flag declarations"
