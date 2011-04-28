@@ -8,10 +8,11 @@
   (:require
    [pallet.common.deprecate :as deprecate]
    [pallet.common.resource :as resource]
-   [clojure.string :as string]
-   [clojure.walk :as walk]
    [clojure.contrib.condition :as condition]
-   [clojure.contrib.logging :as logging]))
+   [clojure.contrib.def :as def]
+   [clojure.contrib.logging :as logging]
+   [clojure.string :as string]
+   [clojure.walk :as walk]))
 
 (defn underscore [s]
   "Change - to _"
@@ -38,6 +39,17 @@
   `(do
      (binding [*script-line* ~line
                *script-file* ~file]
+       ~@body)))
+
+(def/defunbound *stevedore-impl*
+  "Current stevedore implementation")
+
+(defmacro with-stevedore-impl
+  "Set which stevedore implementation to use. Currently supports:
+   :bash"
+  [impl & body]
+  `(do
+     (binding [*stevedore-impl* ~impl]
        ~@body)))
 
 (defn ^String substring
@@ -111,27 +123,27 @@
 (defmulti emit
   "Emit a shell expression as a string. Dispatched on the :type of the
    expression."
-  (fn [ expr ] (type expr)))
+  (fn [ expr ] [*stevedore-impl* (type expr)]))
 
-(defmethod emit nil [expr]
+(defmethod emit [:bash nil] [expr]
   "null")
 
-(defmethod emit java.lang.Integer [expr]
+(defmethod emit [:bash java.lang.Integer] [expr]
   (str expr))
 
-(defmethod emit clojure.lang.Ratio [expr]
+(defmethod emit [:bash clojure.lang.Ratio] [expr]
   (str (float expr)))
 
-(defmethod emit clojure.lang.Keyword [expr]
+(defmethod emit [:bash clojure.lang.Keyword] [expr]
   (name expr))
 
-(defmethod emit java.lang.String [expr]
+(defmethod emit [:bash java.lang.String] [expr]
   expr)
 
-(defmethod emit clojure.lang.Symbol [expr]
+(defmethod emit [:bash clojure.lang.Symbol] [expr]
   (str expr))
 
-(defmethod emit :default [expr]
+(defmethod emit [:bash java.lang.Object] [expr]
   (str expr))
 
 (defn comma-list
@@ -154,7 +166,7 @@
   [args]
   (filter #(not= ::empty-splice %) args))
 
-(defmethod emit ::empty-splice [expr]
+(defmethod emit [:bash ::empty-splice] [expr]
   "")
 
 ;;; * Keyword and Operator Classes
@@ -543,10 +555,10 @@
       (when (seq expr)
         (string/join " " (filter (complement string/blank?) (map emit expr)))))))
 
-(defmethod emit clojure.lang.IPersistentList [expr]
+(defmethod emit [:bash clojure.lang.IPersistentList] [expr]
   (emit-s-expr expr))
 
-(defmethod emit clojure.lang.Cons
+(defmethod emit [:bash clojure.lang.Cons]
   [expr]
   (if (= 'list (first expr))
     (emit-s-expr (rest expr))
@@ -562,10 +574,10 @@
 (defmethod emit-special 'apply [type [apply & exprs]]
   (emit-s-expr (spread exprs)))
 
-(defmethod emit clojure.lang.IPersistentVector [expr]
+(defmethod emit [:bash clojure.lang.IPersistentVector] [expr]
   (str "(" (string/join " " (map emit expr)) ")"))
 
-(defmethod emit clojure.lang.IPersistentMap [expr]
+(defmethod emit [:bash clojure.lang.IPersistentMap] [expr]
   (letfn [(subscript-assign
            [pair]
            (str "["(emit (key pair)) "]=" (emit (val pair))))]
