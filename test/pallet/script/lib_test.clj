@@ -23,36 +23,37 @@
 
 
 (deftest test-declare-arguments
-  (is (= "FLAGS_HELP=\"Test\"\nDEFINE_integer \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
-          (with-script-context [:default]
-            (stevedore/script
-              (~declare-arguments
-                 "Test"
-                 [a b c
-                  [:integer asdf a "asdf" "e"]]))))
-      "With docstring")
-  (is (= "DEFINE_string \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\n"
-          (with-script-context [:default]
-            (stevedore/script
-              (~declare-arguments
-                 [[:string asdf a "asdf" "e"]]))))
-      "Only flags")
-  (is (=  "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
-          (with-script-context [:default]
-            (stevedore/script
-              (~declare-arguments
-                 [a b c]))))
-      "Only args")
-  (is (= "DEFINE_string \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
-          (with-script-context [:default]
-            (stevedore/script
-              (~declare-arguments
-                 [a b c
-                  [:string asdf a "asdf" "e"]]))))
-      "Without docstring")
-  (is (= "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\n"
-          (with-script-context [:default]
-            (stevedore/script
-              (~declare-arguments
-                 []))))
-      "Empty args"))
+  (stevedore/with-stevedore-impl :pallet.stevedore.bash/bash
+    (is (= "FLAGS_HELP=\"Test\"\nDEFINE_integer \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
+           (with-script-context [:default]
+                                (stevedore/script
+                                  (~declare-arguments
+                                     "Test"
+                                     [a b c
+                                      [:integer asdf a "asdf" "e"]]))))
+        "With docstring")
+    (is (= "DEFINE_string \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\n"
+           (with-script-context [:default]
+                                (stevedore/script
+                                  (~declare-arguments
+                                     [[:string asdf a "asdf" "e"]]))))
+        "Only flags")
+    (is (=  "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
+           (with-script-context [:default]
+                                (stevedore/script
+                                  (~declare-arguments
+                                     [a b c]))))
+        "Only args")
+    (is (= "DEFINE_string \"asdf\" \"e\" \"asdf\" \"a\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
+           (with-script-context [:default]
+                                (stevedore/script
+                                  (~declare-arguments
+                                     [a b c
+                                      [:string asdf a "asdf" "e"]]))))
+        "Without docstring")
+    (is (= "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\n"
+           (with-script-context [:default]
+                                (stevedore/script
+                                  (~declare-arguments
+                                     []))))
+        "Empty args")))

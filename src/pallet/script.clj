@@ -27,6 +27,7 @@
   (:use
    [clojure.contrib.core :only [-?>]]))
 
+
 (def/defunbound *script-context*
   "Determine the target to generate script for.
    `defscript` implementations are dispatched on this.  The value should

@@ -100,7 +100,7 @@
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet-common</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -118,6 +118,12 @@
       <artifactId>swank-clojure</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>vimclojure</groupId>
+      <artifactId>server</artifactId>
+      <version>2.2.0</version>
+      <optional>true</optional>
+    </dependency> 
     <dependency>
       <groupId>autodoc</groupId>
       <artifactId>autodoc</artifactId>

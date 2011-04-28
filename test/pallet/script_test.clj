@@ -1,7 +1,9 @@
 (ns pallet.script-test
   (:use
+   [pallet.stevedore :only [with-stevedore-impl]]
    pallet.script
    clojure.test))
+
 
 (deftest matches?-test
   (with-script-context [:ubuntu]
@@ -70,18 +72,19 @@
       (is (= [2 3] (dispatch script2 [1 1 2 3]))))))
 
 (deftest dispatch-test
-  (let [x (script-fn [a])]
-    (testing "with no implementation"
-      (testing "should raise"
-        (pallet.stevedore/with-script-fn-dispatch
-          script-fn-dispatch
-          (with-script-context [:ubuntu]
-            (is (thrown? clojure.contrib.condition.Condition
-                         (pallet.stevedore/script (~x 2))))))))
-    (testing "with an implementation"
-      (defimpl x :default [a] (str "x" ~a 1))
-      (testing "and mandatory dispatch"
-        (pallet.stevedore/with-script-fn-dispatch
-          script-fn-dispatch
-          (with-script-context [:ubuntu]
-            (is (= "x21" (pallet.stevedore/script (~x 2))))))))))
+  (with-stevedore-impl :pallet.stevedore.bash/bash
+    (let [x (script-fn [a])]
+      (testing "with no implementation"
+        (testing "should raise"
+          (pallet.stevedore/with-script-fn-dispatch
+            script-fn-dispatch
+            (with-script-context [:ubuntu]
+              (is (thrown? clojure.contrib.condition.Condition
+                           (pallet.stevedore/script (~x 2))))))))
+      (testing "with an implementation"
+        (defimpl x :default [a] (str "x" ~a 1))
+        (testing "and mandatory dispatch"
+          (pallet.stevedore/with-script-fn-dispatch
+            script-fn-dispatch
+            (with-script-context [:ubuntu]
+              (is (= "x21" (pallet.stevedore/script (~x 2)))))))))))
