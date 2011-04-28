@@ -3,6 +3,7 @@
   (:require
     [pallet.script :as script]
     [pallet.stevedore :as stevedore]
+    [pallet.stevedore.bash :as bash]
     [clojure.string :as string]))
 
 (script/defscript declare-arguments [& args])
@@ -11,4 +12,4 @@
   ~(let [[doc? sig] (if (= (count args) 2)
                       args
                       [nil (first args)])]
-     (stevedore/shflags-make-declaration doc? sig)))
+     (bash/shflags-make-declaration doc? sig)))

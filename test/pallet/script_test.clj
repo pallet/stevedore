@@ -72,7 +72,7 @@
       (is (= [2 3] (dispatch script2 [1 1 2 3]))))))
 
 (deftest dispatch-test
-  (with-stevedore-impl :bash
+  (with-stevedore-impl :pallet.stevedore.bash/bash
     (let [x (script-fn [a])]
       (testing "with no implementation"
         (testing "should raise"
