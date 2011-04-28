@@ -6,7 +6,7 @@
   (:use 
     [pallet.stevedore :only [compound-form? special-form? emit emit-special emit-do splice-list
                              *script-fn-dispatch*]]
-    [pallet.common.string :only [add-quotes substring underscore]]))
+    [pallet.common.string :only [quoted substring underscore]]))
 
 
 (derive ::bash :pallet.stevedore.common/common-impl)
@@ -49,12 +49,12 @@
 (defn- shflags-declare [type long short doc default]
   "Helper for shFlags flag declarations"
   (str "DEFINE_" (name type) " "
-       (apply str (interpose " " (map add-quotes [long default doc short])))
+       (apply str (interpose " " (map quoted [long default doc short])))
        "\n"))
 
 (defn- shflags-doc-string [doc]
   (assert (string? doc))
-  (str "FLAGS_HELP=" (add-quotes doc) "\n"))
+  (str "FLAGS_HELP=" (quoted doc) "\n"))
 
 (defn- shflags-setup []
   (str "FLAGS \"$@\" || exit 1\n"
@@ -117,7 +117,7 @@
     (throw (Exception. "Less than 2 infix arguments not supported yet.")))
   (let [open (if (logical-operator? operator) "\\( " "(")
         close (if (logical-operator? operator) " \\)" ")")
-        quoting (if (quoted-operator? operator) add-quotes identity)]
+        quoting (if (quoted-operator? operator) quoted identity)]
     (str open (emit-quoted-if-not-subexpr quoting (first args)) " "
          (get infix-conversions operator operator)
          " " (emit-quoted-if-not-subexpr quoting (second args)) close)))
@@ -215,7 +215,7 @@
   (apply clojure.core/str (map emit args)))
 
 (defmethod emit-special [::bash 'quoted] [type [quoted arg]]
-  (add-quotes (emit arg)))
+  (quoted (emit arg)))
 
 (defmethod emit-special [::bash 'println] [type [println & args]]
   (str "echo " (emit args)))

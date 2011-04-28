@@ -1,5 +1,6 @@
 (ns pallet.stevedore-test
   (:use
+   [pallet.common.string :only [quoted]]
    pallet.stevedore 
    clojure.test)
   (:require
@@ -203,7 +204,7 @@
     (is (= "case ${X} in\n1)\nsomething;;\n\"2\")\nsomething else;;\nesac"
            (script (case @X
                          1 (something)
-                         (quoted "2") (something else)))))))
+                         ~(quoted "2") (something else)))))))
 
 (deftest test-doseq
   (with-stevedore-impl :pallet.stevedore.bash/bash
