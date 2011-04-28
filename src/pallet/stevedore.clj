@@ -53,6 +53,43 @@
   [s]
   (str "\"" s "\""))
 
+(defn- shflags-declare [type long short doc default]
+  "Helper for shFlags flag declarations"
+  (str "DEFINE_" (name type) " "
+       (apply str (interpose " " (map add-quotes [long default doc short])))
+       "\n"))
+
+(defn- shflags-doc-string [doc]
+  (assert (string? doc))
+  (str "FLAGS_HELP=" (add-quotes doc) "\n"))
+
+(defn- shflags-setup []
+  (str "FLAGS \"$@\" || exit 1\n"
+       "eval set -- \"${FLAGS_ARGV}\"\n"))
+
+(defn- deconstruct-sig [sig]
+  "Returns a vector with the first element being a vector
+  of arguments and second being a vector of flags"
+  (assert (vector? sig))
+  (let [[args flags :as dsig] (split-with symbol? sig)]
+    (assert (or (empty? flags) (every? vector? flags)))
+    dsig))
+
+(declare emit)
+
+(defn shflags-make-declaration [doc? sig]
+  "Returns a shflags declaration"
+  (let [[args flags] (deconstruct-sig sig)]
+    (str (when (string? doc?)
+           (str (shflags-doc-string doc?)))
+         (when (seq flags)
+           (str (apply str (map (partial apply shflags-declare) flags))))
+         (shflags-setup)
+         (when (seq args)
+           (str
+             (string/join "\n" (map #(str (emit %1) "=" "$" %2) args (iterate inc 1)))
+             \newline)))))
+
 (defonce
   ^{:doc
     "bash library for associative arrays in bash 3. You need to include this in
@@ -473,26 +510,23 @@
   [type [chain-and & exprs]]
   (string/join " && " (map emit exprs)))
 
-(defn- emit-function [name sig body]
-  (assert (or (symbol? name) (nil? name)))
-  (assert (vector? sig))
-  (str "function " name "() {\n"
-       (when (not (empty? sig))
-         (str
-          (string/join "\n" (map #(str (emit %1) "=" "$" %2) sig (iterate inc 1)))
-          \newline))
+(defn- emit-function [name doc? sig body]
+  (assert (symbol? name))
+  (str name "() {\n"
+       (shflags-make-declaration doc? sig)
        (emit-do body)
-       " }\n"))
+       "}\n"))
 
 (defmethod emit-special 'defn [type [fn & expr]]
-  (if (symbol? (first expr))
-    (let [name (first expr)
-          signature (second expr)
-          body (rest (rest expr))]
-      (emit-function name signature body))
-    (let [signature (first expr)
-          body (rest expr)]
-      (emit-function nil signature body))))
+  (let [name (first expr)]
+    (if (string? (second expr))
+      (let [doc (second expr)
+            signature (second (next expr))
+            body (rest (rest (rest expr)))]
+        (emit-function name doc signature body))
+      (let [signature (second expr)
+            body (rest (rest expr))]
+        (emit-function name nil signature body)))))
 
 (defn emit-s-expr [expr]
   (if (symbol? (first expr))
@@ -701,3 +735,4 @@
       ~&form
       (deprecate/rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
      (pallet.script/defimpl ~script ~specialisers [~@args] ~@body)))
+

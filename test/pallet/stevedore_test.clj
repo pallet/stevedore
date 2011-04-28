@@ -73,11 +73,39 @@
          (script (str foo bar)))))
 
 (deftest test-fn
-  (is (= "function foo() {\nx=$1\ny=$2\nfoo a\nbar b\n }"
-         (strip-ws (script (defn foo [x y] (foo a) (bar b)))))))
+    (is (thrown? java.lang.AssertionError
+          (strip-ws (script (defn [x y]
+                              (foo a) (bar b)))))
+        "anonymous")
+
+    (is (= "foo() {\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
+           (strip-ws (script (defn foo [x y] 
+                               (foo a) (bar b)))))
+        "without flags")
+
+    (is (= "foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nfoo a\nbar b\n}"
+           (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b)))))
+         "with flags only")
+
+    (is (= "foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
+           (strip-ws (script (defn foo [x y 
+                                        [:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b)))))
+        "with flags and arguments")
+
+    (is (= "foo() {\nFLAGS_HELP=\"This is doc\"\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
+           (strip-ws (script (defn foo 
+                               "This is doc" 
+                               [x y 
+                                [:string "host" "h" "Doc" "default"]] 
+                               (foo a) (bar b)))))
+        "with docstring and arguments"))
+
 
 (deftest test-aget
   (is (= "${foo[2]}" (script (aget foo 2)))))
+
 
 (deftest test-aset
   (is (= "foo[2]=1" (script (aset foo 2 1)))))
@@ -217,7 +245,7 @@ fi"
   (let [stuff (quote (do
                        (local x 3)
                        (local y 4)))]
-    (is (= "function foo() {\nx=$1\nlocal x=3\nlocal y=4\n }"
+    (is (= "foo() {\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\nlocal x=3\nlocal y=4\n}"
            (strip-ws (script (defn foo [x] ~stuff)))))))
 
 (deftest defvar-test
