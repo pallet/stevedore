@@ -8,6 +8,7 @@
   (:require
    [pallet.common.deprecate :as deprecate]
    [clojure.contrib.def :as def]
+   [clojure.contrib.seq :as c.seq]
    [clojure.string :as string]
    [clojure.walk :as walk])
   (:use
@@ -106,6 +107,27 @@
   "Emit a shell expression as a string. Dispatched on the :type of the
    expression."
   (fn [ expr ] [*stevedore-impl* (type expr)]))
+
+
+;;; Implementation coverage tests
+;;;
+;;; Example usage:
+;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
+(defn emit-special-coverage [ns impl]
+  "Returns a vector of two elements. First elements is a vector
+  of successfully dispatched special functions. Second element is a vector
+  of failed dispatches."
+  (c.seq/separate 
+    (fn [s] 
+      (try 
+        (with-stevedore-impl impl 
+          (emit-special s)
+        true
+        (catch Exception e
+          (not (.contains 
+            (str e)
+            (str "java.lang.IllegalArgumentException: No method in multimethod 'emit-special' for dispatch value: [" impl " " s "]")))))))
+    special-forms))
 
 
 ;;; Splicing functions
