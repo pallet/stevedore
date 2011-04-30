@@ -4,8 +4,9 @@
     [clojure.contrib.condition :as condition]
     [clojure.string :as string])
   (:use 
-    [pallet.stevedore :only [compound-form? special-form? emit emit-special emit-do splice-list
-                             *script-fn-dispatch*]]
+    [pallet.stevedore 
+     :only [compound-form? special-form? emit emit-special emit-do emit-infix emit-function splice-list *script-fn-dispatch*
+            infix-operator?]]
     [pallet.common.string :only [quoted substring underscore]]))
 
 
@@ -82,9 +83,7 @@
              \newline)))))
 
 
-(defn- infix-operator?
-  "Predicate to check if expr is an infix operator"
-  [expr]
+(defmethod infix-operator? ::bash [expr]
   (contains? infix-operators expr))
 
 (defn- logical-operator?
@@ -112,7 +111,7 @@
       s
       (f s))))
 
-(defn- emit-infix [type [operator & args]]
+(defmethod emit-infix ::bash [type [operator & args]]
   (when (< (count args) 2)
     (throw (Exception. "Less than 2 infix arguments not supported yet.")))
   (let [open (if (logical-operator? operator) "\\( " "(")
@@ -121,23 +120,6 @@
     (str open (emit-quoted-if-not-subexpr quoting (first args)) " "
          (get infix-conversions operator operator)
          " " (emit-quoted-if-not-subexpr quoting (second args)) close)))
-
-(defn- emit-s-expr [expr]
-  (if (symbol? (first expr))
-    (let [head (symbol (name (first expr))) ; remove any ns resolution
-          expr1 (conj (rest expr) head)]
-      (cond
-       (and (= (first (str head)) \.)
-            (> (count (str head)) 1)) (emit-special 'dot-method expr1)
-       (special-form? head) (emit-special head expr1)
-       (infix-operator? head) (emit-infix head expr1)
-       :else (emit-special 'invoke expr)))
-    (if (map? (first expr))
-      (emit-special 'invoke expr)
-      (when (seq expr)
-        (string/join " " (filter (complement string/blank?) (map emit expr)))))))
-
-
 
 
 (defmethod emit-special [::bash 'file-exists?] [type [file-exists? path]]
@@ -249,30 +231,18 @@
 (defmethod emit [::bash clojure.lang.Symbol] [expr]
   (str expr))
 
-(defmethod emit [::bash java.lang.Object] [expr]
+(defmethod emit [::bash java.lang.Boolean] [expr]
   (str expr))
+
+;; TODO should this even exist? 
+;; It causes seemingly unnessessary conflicts with ::common-impl implementations
+;; we don't buy much by having it.
+;;
+;;(defmethod emit [::bash java.lang.Object] [expr]
+;;  (str expr))
 
 (defmethod emit [::bash ::empty-splice] [expr]
   "")
-
-(defmethod emit [::bash clojure.lang.IPersistentList] [expr]
-  (emit-s-expr expr))
-
-(defmethod emit [::bash clojure.lang.Cons]
-  [expr]
-  (if (= 'list (first expr))
-    (emit-s-expr (rest expr))
-    (emit-s-expr expr)))
-
-(defn- spread
-  [arglist]
-  (cond
-   (nil? arglist) nil
-   (nil? (next arglist)) (seq (first arglist))
-   :else (apply list (first arglist) (spread (next arglist)))))
-
-(defmethod emit-special [::bash 'apply] [type [apply & exprs]]
-  (emit-s-expr (spread exprs)))
 
 (defmethod emit [::bash clojure.lang.IPersistentVector] [expr]
   (str "(" (string/join " " (map emit expr)) ")"))
@@ -414,21 +384,10 @@
   [type [chain-and & exprs]]
   (string/join " && " (map emit exprs)))
 
-(defn- emit-function [name doc? sig body]
+(defmethod emit-function ::bash
+  [name doc? sig body]
   (assert (symbol? name))
   (str name "() {\n"
        (shflags-make-declaration doc? sig)
        (emit-do body)
        "}\n"))
-
-(defmethod emit-special [::bash 'defn] [type [fn & expr]]
-  (let [name (first expr)]
-    (if (string? (second expr))
-      (let [doc (second expr)
-            signature (second (next expr))
-            body (rest (rest (rest expr)))]
-        (emit-function name doc signature body))
-      (let [signature (second expr)
-            body (rest (rest expr))]
-        (emit-function name nil signature body)))))
-

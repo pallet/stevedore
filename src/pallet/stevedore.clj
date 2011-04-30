@@ -97,6 +97,10 @@
   [expr]
   (= 'do  (first expr)))
 
+(defmulti infix-operator?
+  "Predicate to check if expr is an infix operator. Each implementation
+  should implement it's own multimethod."
+  (fn [expr] *stevedore-impl*))
 
 ;; Main dispatch functions
 (defmulti emit-special
@@ -108,7 +112,13 @@
    expression."
   (fn [ expr ] [*stevedore-impl* (type expr)]))
 
-
+(defmulti emit-function 
+  "Emit a shell function"
+  (fn [name doc? sig body] *stevedore-impl*))
+  
+(defmulti emit-infix
+  (fn [type [operator & args]] *stevedore-impl*))
+  
 ;;; Implementation coverage tests
 ;;;
 ;;; Example usage:
