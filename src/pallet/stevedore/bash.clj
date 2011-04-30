@@ -5,8 +5,8 @@
     [clojure.string :as string])
   (:use 
     [pallet.stevedore 
-     :only [compound-form? special-form? emit emit-special emit-do emit-infix emit-function splice-list *script-fn-dispatch*
-            infix-operator?]]
+     :only [compound-form? special-form? emit emit-special emit-do emit-infix emit-function emit-function-call
+            splice-list *script-fn-dispatch* infix-operator?]]
     [pallet.common.string :only [quoted substring underscore]]))
 
 
@@ -391,3 +391,9 @@
        (shflags-make-declaration doc? sig)
        (emit-do body)
        "}\n"))
+
+(defmethod emit-function-call ::bash
+  [name & args]
+  (if (seq args)
+    (apply str (emit name) " " args)
+    (emit name)))

@@ -5,7 +5,7 @@
     [clojure.contrib.logging :as logging])
   (:use
     [pallet.stevedore 
-     :only [emit emit-special emit-function emit-infix
+     :only [emit emit-special emit-function emit-infix emit-function-call
             special-form? compound-form? infix-operator?]]))
 
 
@@ -26,9 +26,7 @@
                     (map emit)
                     (filter (complement string/blank?))
                     (interpose " "))]
-      (if (seq argseq)
-        (apply str (emit name) " " argseq)
-        (emit name)))))
+      (apply emit-function-call name argseq))))
 
 (defn- emit-s-expr [expr]
   (if (symbol? (first expr))

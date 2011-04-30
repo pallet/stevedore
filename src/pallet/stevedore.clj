@@ -115,6 +115,10 @@
 (defmulti emit-function 
   "Emit a shell function"
   (fn [name doc? sig body] *stevedore-impl*))
+
+(defmulti emit-function-call
+  "Emit a shell function call"
+  (fn [name & args] *stevedore-impl*))
   
 (defmulti emit-infix
   (fn [type [operator & args]] *stevedore-impl*))
