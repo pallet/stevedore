@@ -1,5 +1,6 @@
 (ns pallet.stevedore.batch
   (:require
+    [clojure.contrib.condition :as condition]
     pallet.stevedore.common)
   (:use
     [pallet.stevedore 
@@ -34,8 +35,8 @@
 (defmethod emit-infix ::batch [type [operator & args]]
   (when (< (count args) 2)
     (throw (Exception. "Less than 2 infix arguments not supported yet.")))
-  (let [open "( "
-        close " )"]
+  (let [open "("
+        close ")"]
     (str open (emit (first args)) " "
          (get infix-conversions operator operator)
          " " (emit (second args)) close)))
@@ -61,3 +62,16 @@
   (if (seq args)
     (apply str "call:" (emit name) " " args)
     (str "call:" (emit name))))
+
+(defn- check-symbol [var-name]
+  (when (re-matches #".*-.*" var-name)
+    (condition/raise
+     :type :invalid-bash-symbol
+     :message (format "Invalid batch symbol %s" var-name)))
+  var-name)
+
+(defmethod emit-special [::batch 'set!] [type [set! var val]]
+  (str "set " (check-symbol (emit var)) "=" (emit val)))
+
+(defmethod emit [::batch java.lang.String] [expr]
+  expr)
