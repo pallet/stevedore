@@ -112,33 +112,33 @@
    expression."
   (fn [ expr ] [*stevedore-impl* (type expr)]))
 
-(defmulti emit-function 
+(defmulti emit-function
   "Emit a shell function"
   (fn [name doc? sig body] *stevedore-impl*))
 
 (defmulti emit-function-call
   "Emit a shell function call"
   (fn [name & args] *stevedore-impl*))
-  
+
 (defmulti emit-infix
   (fn [type [operator & args]] *stevedore-impl*))
-  
+
 ;;; Implementation coverage tests
 ;;;
 ;;; Example usage:
 ;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
-(defn emit-special-coverage [ns impl]
+(defn emit-special-coverage [impl]
   "Returns a vector of two elements. First elements is a vector
   of successfully dispatched special functions. Second element is a vector
   of failed dispatches."
-  (c.seq/separate 
-    (fn [s] 
-      (try 
-        (with-stevedore-impl impl 
+  (c.seq/separate
+    (fn [s]
+      (try
+        (with-stevedore-impl impl
           (emit-special s)
         true
         (catch Exception e
-          (not (.contains 
+          (not (.contains
             (str e)
             (str "java.lang.IllegalArgumentException: No method in multimethod 'emit-special' for dispatch value: [" impl " " s "]")))))))
     special-forms))

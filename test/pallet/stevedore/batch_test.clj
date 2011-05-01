@@ -6,6 +6,11 @@
    midje.sweet
    clojure.test))
 
+(deftest implementation-coverage-test
+  (future-fact "complete `emit-special` coverage"
+    (let [unimplemented (second (emit-special-coverage :pallet.stevedore.batch/batch))]
+      unimplemented => empty?)))
+
 (deftest number-literal
   (with-stevedore-impl :pallet.stevedore.batch/batch
     (facts
@@ -27,7 +32,7 @@
 
 (deftest test-arithmetic
   (with-stevedore-impl :pallet.stevedore.batch/batch
-    (fact
+    (facts
       (script (* x y)) => "(x * y)"
       (script (* 1 2)) => "(1 * 2)")))
 

@@ -1,10 +1,10 @@
 (ns pallet.stevedore.bash
-  (:require 
+  (:require
     [pallet.common.resource :as resource]
     [clojure.contrib.condition :as condition]
     [clojure.string :as string])
-  (:use 
-    [pallet.stevedore 
+  (:use
+    [pallet.stevedore
      :only [compound-form? special-form? emit emit-special emit-do emit-infix emit-function emit-function-call
             splice-list *script-fn-dispatch* infix-operator?]]
     [pallet.common.string :only [quoted substring underscore]]))
@@ -234,7 +234,7 @@
 (defmethod emit [::bash java.lang.Boolean] [expr]
   (str expr))
 
-;; TODO should this even exist? 
+;; TODO should this even exist?
 ;; It causes seemingly unnessessary conflicts with ::common-impl implementations
 ;; we don't buy much by having it.
 ;;
