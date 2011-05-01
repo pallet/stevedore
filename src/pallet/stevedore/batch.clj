@@ -2,7 +2,9 @@
   (:require
     pallet.stevedore.common)
   (:use
-    [pallet.stevedore :only [compound-form? special-form? emit emit-special emit-do emit-function splice-list *script-fn-dispatch* infix-operator? emit-infix]]
+    [pallet.stevedore 
+     :only [emit emit-special emit-function-call emit-do emit-function emit-infix
+            infix-operator?]]
     [pallet.stevedore :only [emit]]))
 
 (derive ::batch :pallet.stevedore.common/common-impl)
@@ -47,9 +49,15 @@
 (defmethod emit [::batch clojure.lang.Symbol] [expr]
   (str expr))
 
-(defmethod emit-function ::bash
+(defmethod emit-function ::batch
   [name doc? sig body]
   (assert (symbol? name))
   (str ":" name "\n"
        (emit-do body)
        "GOTO :EOF"))
+
+(defmethod emit-function-call ::batch
+  [name & args]
+  (if (seq args)
+    (apply str "call:" (emit name) " " args)
+    (str "call:" (emit name))))

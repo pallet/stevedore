@@ -15,4 +15,5 @@
 (deftest simple-call-test
   (with-stevedore-impl :pallet.stevedore.batch/batch
     (fact
-      (script (a b)) => "CALL :a b")))
+      (script (a b)) => "call:a b"
+      (script (a)) => "call:a")))
