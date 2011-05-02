@@ -1,6 +1,7 @@
 (ns pallet.stevedore.batch
   (:require
     [clojure.contrib.condition :as condition]
+    [clojure.string :as string]
     pallet.stevedore.common)
   (:use
     [pallet.stevedore 
@@ -85,3 +86,7 @@
 (defmethod emit-special [::batch 'deref]
   [type [deref expr]]
   (str "%" (emit expr) "%"))
+
+(defmethod emit-special [::batch 'group]
+  [type [ group & exprs]]
+  (str "(\n" (string/join "\n" (map emit exprs)) "\n)"))

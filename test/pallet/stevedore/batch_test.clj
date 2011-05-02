@@ -70,3 +70,9 @@
       (script @TMPDIR-/tmp) => "%TMPDIR%-/tmp")
     (future-fact "support equivilant of `ls`"
       (script @(ls)) "$(ls)")))
+
+(deftest group-test
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (facts
+      (script (group (ls))) => "(\ncall:ls\n)"
+      (script (group (ls) (ls))) => "(\ncall:ls\ncall:ls\n)")))
