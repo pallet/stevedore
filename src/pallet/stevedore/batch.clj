@@ -75,3 +75,9 @@
 
 (defmethod emit [::batch java.lang.String] [expr]
   expr)
+
+(defmethod emit-special [::batch 'str] [type [str & args]]
+  (apply clojure.core/str (map emit args)))
+
+(defmethod emit-special [::batch 'println] [type [println & args]]
+  (str "echo " (emit args)))

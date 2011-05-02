@@ -51,3 +51,13 @@
       (script (set! foo "1")) => "set foo=1"
       (script (set! foo "1 + 1")) => "set foo=1 + 1"
       (script (set! foo-bar "1")) => (throws clojure.contrib.condition.Condition))))
+
+(deftest test-str
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact (script (str foo bar)) => "foobar"))) 
+
+(deftest println-test
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact
+      (script (println "hello")) => "echo hello"
+      (script (println "hello there")) => "echo hello there")))

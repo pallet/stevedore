@@ -288,9 +288,9 @@
 (deftest println-test
   (with-stevedore-impl :pallet.stevedore.bash/bash
     (is (= "echo hello"
-           (script (println hello))))
+           (script (println "hello"))))
     (is (= "echo hello there"
-           (script (println hello there))))))
+           (script (println "hello there"))))))
 
 (deftest do-script-test
   (with-stevedore-impl :pallet.stevedore.bash/bash
