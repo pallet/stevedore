@@ -54,10 +54,19 @@
 
 (deftest test-str
   (with-stevedore-impl :pallet.stevedore.batch/batch
-    (fact (script (str foo bar)) => "foobar"))) 
+    (fact (script (str foo bar)) => "foobar")))
 
 (deftest println-test
   (with-stevedore-impl :pallet.stevedore.batch/batch
     (fact
       (script (println "hello")) => "echo hello"
       (script (println "hello there")) => "echo hello there")))
+
+(deftest deref-test
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact
+      (script @TMPDIR) => "%TMPDIR%")
+    (future-fact "support default value for defrefencing"
+      (script @TMPDIR-/tmp) => "%TMPDIR%-/tmp")
+    (future-fact "support equivilant of `ls`"
+      (script @(ls)) "$(ls)")))

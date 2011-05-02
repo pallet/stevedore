@@ -81,3 +81,7 @@
 
 (defmethod emit-special [::batch 'println] [type [println & args]]
   (str "echo " (emit args)))
+
+(defmethod emit-special [::batch 'deref]
+  [type [deref expr]]
+  (str "%" (emit expr) "%"))
