@@ -14,7 +14,7 @@
 ;; Main dispatch functions.
 ;;
 ;; `stevedore/emit` is the entry point for parsing.
-;; It dispatches on the type of its argument. 
+;; It dispatches on the type of its argument.
 ;;
 ;; For example (emit (ls "asdf")) dispatches on `clojure.lang.IPersistentList`.
 ;;

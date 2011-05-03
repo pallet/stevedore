@@ -2,18 +2,152 @@
   "Embed shell script in clojure.
 
    Shell script is embedded by wrapping in the `script` macro.
-       (script (ls)) => \"ls\"
+   (script (ls)) => \"ls\"
 
    The result of a `script` form is a string."
   (:require
-   [pallet.common.deprecate :as deprecate]
-   [clojure.contrib.def :as def]
-   [clojure.string :as string]
-   [clojure.walk :as walk])
+    [pallet.common.deprecate :as deprecate]
+    [clojure.contrib.def :as def]
+    [clojure.string :as string]
+    [clojure.walk :as walk])
   (:use
-   [pallet.common.string :only [underscore]]))
+    [pallet.common.string :only [underscore]]))
 
-;;; Helper vars for parsing the stevedore DSL
+(declare *stevedore-impl*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; SCRIPT GENERATION PUBLIC INTERFACE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; `script` is the public interface to stevedore.
+;;
+;; Simply pass any number of Stevedore forms to `script`, and it will return a
+;; string coverting to the desired output language.
+;;
+;; (script
+;;   (println "asdf")
+;;   (println "and another"))
+;;
+;; To specify which implementation to use, `script` must be wrapped in `with-stevedore-impl`.
+;;
+;; (with-stevedore-impl :pallet.stevedore.bash/bash
+;;   (script
+;;     (println "asdf")))
+
+(defmacro with-stevedore-impl
+  "Set which stevedore implementation to use. Currently supports:
+   :pallet.stevedore.bash/bash"
+  [impl & body]
+  `(do
+     (binding [*stevedore-impl* ~impl]
+       ~@body)))
+
+(defmacro script
+  "Takes one or more forms. Returns a string of the forms translated into
+   shell script.
+       (script
+         (println \"hello\")
+         (ls -l \"*.sh\"))
+  Must be wrapped in `with-stevedore-impl`."
+  [& forms]
+  `(with-line-number [~*file* ~(:line (meta &form))]
+     (binding [*script-ns* ~*ns*]
+       (emit-script (quasiquote ~forms)))))
+
+
+;;; Public script combiners
+;;;
+;;; Each script argument to these functions must be wrapped in
+;;; an explicit `script`.
+;;;
+;;; Eg. (do-script (script (ls)) (script (ls)))
+;;;  => (script
+;;;       (ls)
+;;;       (ls))
+
+(defmulti do-script
+  "Concatenate multiple scripts."
+  (fn [& scripts] *stevedore-impl*))
+
+(defmulti chain-commands
+  "Chain commands together. Commands are executed left-to-right and a command is
+  only executed if the last command in the chain did not fail."
+  (fn [& scripts] *stevedore-impl*))
+
+(defmulti checked-commands
+  "Wrap a command in a code that checks the return value. Code to output the
+  messages is added before the command."
+  (fn [message & cmds] *stevedore-impl*))
+
+
+;; These macros have an implicit `script` around each script argument, but
+;; are otherwise identical their `*-commands` counterparts.
+;; 
+;; Eg. (chained-script ls ls)
+;;     => (script
+;;          ls
+;;          ls)
+
+(defmacro chained-script
+  "Takes one or more forms. Returns a string of the forms translated into a
+   chained shell script command."
+  [& forms]
+  `(chain-commands
+    ~@(map (fn [f] (list `script f)) forms)))
+
+(defmacro checked-script
+  "Takes one or more forms. Returns a string of the forms translated into
+   shell scrip.  Wraps the expression in a test for the result status."
+  [message & forms]
+  `(checked-commands ~message
+    ~@(map (fn [f] (list `script f)) forms)))
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; IMPLEMENTATION FUNDAMENTALS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; `emit` is the fundamental dispatch for stevedore implementations. It
+;; dispatches on the type of its argument.
+;; 
+;; Here is a common life cycle of a script generation.
+;;
+;; 1. Forms passed to `script`
+;;   (script 
+;;     (println "abc"))
+;;
+;; 2. Forms are passed individually to `emit`
+;;   (emit
+;;     (println "abc"))
+;;
+;; 3. `emit` finds correct dispatch (lists are usually the initial type)
+;;   (defmethod emit clojure.lang.IPersistentList
+;;      [form]
+;;      ...some-magic...)
+;; 
+;;    `emit` implementations usually have recursive calls. The above function
+;;    might eventually call a dispatch on java.lang.String to convert "abc".
+;;
+;; 4. A string results from the form.
+
+(defmulti emit
+  "Emit a shell expression as a string. Dispatched on the :type of the
+   expression."
+  (fn [ expr ] [*stevedore-impl* (type expr)]))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; IMPLEMENTATION DETAILS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Helper vars and functions for parsing the stevedore DSL.
 
 (def/defunbound *stevedore-impl*
   "Current stevedore implementation")
@@ -128,11 +262,6 @@
       (str expr statement-separator)
       expr)))
 
-(defmulti emit
-  "Emit a shell expression as a string. Dispatched on the :type of the
-   expression."
-  (fn [ expr ] [*stevedore-impl* (type expr)]))
-
 (defn emit-do [exprs]
   (string/join (map (comp statement emit) (filter-empty-splice exprs))))
 
@@ -147,86 +276,9 @@
     code))
 
 
-;; `script` is the public interface to stevedore.
-;;
-;; Simply pass any number of Stevedore forms to `script`, and it will return a
-;; string coverting to the desired output language.
-;;
-;; (script
-;;   (println "asdf")
-;;   (println "and another"))
-;;
-;; To specify which implementation to use, `script` must be wrapped in a `with-stevedore-impl`.
-;;
-;; (with-stevedore-impl :pallet.stevedore.bash/bash
-;;   (script
-;;     (println "asdf")))
-
-(defmacro with-stevedore-impl
-  "Set which stevedore implementation to use. Currently supports:
-   :pallet.stevedore.bash/bash"
-  [impl & body]
-  `(do
-     (binding [*stevedore-impl* ~impl]
-       ~@body)))
-
-(defmacro script
-  "Takes one or more forms. Returns a string of the forms translated into
-   shell script.
-       (script
-         (println \"hello\")
-         (ls -l \"*.sh\"))"
-  [& forms]
-  `(with-line-number [~*file* ~(:line (meta &form))]
-     (binding [*script-ns* ~*ns*]
-       (emit-script (quasiquote ~forms)))))
 
 
-;;; Script combiners
-;;;
-;;; Each script argument to these functions must be wrapped in
-;;; an explicit `script`.
-;;;
-;;; Eg. (do-script (script (ls)) (script (ls)))
-;;;  => (script
-;;;       (ls)
-;;;       (ls))
 
-(defmulti do-script
-  "Concatenate multiple scripts."
-  (fn [& scripts] *stevedore-impl*))
-
-(defmulti chain-commands
-  "Chain commands together. Commands are executed left-to-right and a command is
-  only executed if the last command in the chain did not fail."
-  (fn [& scripts] *stevedore-impl*))
-
-(defmulti checked-commands
-  "Wrap a command in a code that checks the return value. Code to output the
-  messages is added before the command."
-  (fn [message & cmds] *stevedore-impl*))
-
-
-;; These macros have an implicit `script` around each script argument
-;; 
-;; Eg. (chained-script ls ls)
-;;     => (script
-;;          ls
-;;          ls)
-
-(defmacro chained-script
-  "Takes one or more forms. Returns a string of the forms translated into a
-   chained shell script command."
-  [& forms]
-  `(chain-commands
-    ~@(map (fn [f] (list `script f)) forms)))
-
-(defmacro checked-script
-  "Takes one or more forms. Returns a string of the forms translated into
-   shell scrip.  Wraps the expression in a test for the result status."
-  [message & forms]
-  `(checked-commands ~message
-    ~@(map (fn [f] (list `script f)) forms)))
 
 
 ;;; Script argument helpers
