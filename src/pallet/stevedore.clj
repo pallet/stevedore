@@ -40,6 +40,14 @@
 (def/defunbound *stevedore-impl*
   "Current stevedore implementation")
 
+
+;; Whenever `script` is called, it must be wrapped in a `with-stevedore-impl`,
+;; which instructs which implementation to utilize.
+;;
+;; (with-stevedore-impl :pallet.stevedore.bash/bash
+;;   (script
+;;     (println "asdf")))
+
 (defmacro with-stevedore-impl
   "Set which stevedore implementation to use. Currently supports:
    :pallet.stevedore.bash/bash"
@@ -99,10 +107,12 @@
 (defmulti emit-infix
   (fn [type [operator & args]] *stevedore-impl*))
 
+
 ;;; Implementation coverage tests
 ;;;
 ;;; Example usage:
 ;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
+
 (defn emit-special-coverage [impl]
   "Returns a vector of two elements. First elements is a vector
   of successfully dispatched special functions. Second element is a vector
@@ -156,8 +166,18 @@
 (defn emit-do [exprs]
   (string/join (map (comp statement emit) (filter-empty-splice exprs))))
 
+
+;; `emit-script` is the main entry point for stevedore implementations.
+;; It should not be called by users. It is only public so it can be implemented
+;; by different implementations.
+;;
+;; The main requirement of implementations is this function being implemented.
+;;
+;; It is called via the public `script` function.
+
 (defmulti emit-script
   (fn [forms] *stevedore-impl*))
+
 
 (defmethod emit-script :default
   [forms]
@@ -212,7 +232,14 @@
   (let [post-form (walk/walk inner-walk outer-walk form)]
     post-form))
 
+
 ;; TODO move quausiquote to emit-script
+;; `script` is the public interface to stevedore. All scripts must be
+;; wrapped in a `script` form.
+;;
+;; (script
+;;   (println "asdf"))
+
 (defmacro script
   "Takes one or more forms. Returns a string of the forms translated into
    shell script.
@@ -224,7 +251,16 @@
      (binding [*script-ns* ~*ns*]
        (emit-script (quasiquote ~forms)))))
 
+
 ;;; Script combiners
+;;;
+;;; Each script argument to these functions must be wrapped in
+;;; an explicit `script`.
+;;; Eg. (do-script (script ls) (script ls))
+;;;  => (script
+;;;       ls
+;;;       ls)
+
 (defmulti do-script
   "Concatenate multiple scripts."
   (fn [& scripts] *stevedore-impl*))
@@ -266,6 +302,14 @@
         \newline
         "echo \"...done\"\n"))))
 
+
+;; These macros have an implicit `script` around each script argument
+;; 
+;; Eg. (chained-script ls ls)
+;;     => (script
+;;          ls
+;;          ls)
+
 (defmacro chained-script
   "Takes one or more forms. Returns a string of the forms translated into a
    chained shell script command."
@@ -279,6 +323,7 @@
   [message & forms]
   `(checked-commands ~message
     ~@(map (fn [f] (list `script f)) forms)))
+
 
 ;;; Script argument helpers
 ;;; TODO eliminate the need for this to be public by supporting literal maps for expansion
