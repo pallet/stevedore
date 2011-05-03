@@ -7,7 +7,8 @@
   (:use
     [pallet.stevedore 
      :only [emit emit-special emit-function emit-infix emit-function-call
-            with-stevedore-impl compound-form? infix-operator?]]))
+            with-stevedore-impl compound-form? infix-operator?
+            do-script chain-commands checked-commands]]))
 
 
 ;;; * Keyword and Operator Classes
@@ -116,3 +117,34 @@
       (let [signature (second expr)
             body (rest (rest expr))]
         (emit-function name nil signature body)))))
+
+
+;;; Script combiners
+
+(defmethod do-script ::common-impl
+  [& scripts]
+  (str
+   (->>
+    scripts
+    (map #(when % (string/trim %)))
+    (filter (complement string/blank?))
+    (string/join \newline))
+   \newline))
+
+(defmethod chain-commands ::common-impl
+  [& scripts]
+  (string/join " && "
+    (filter
+     (complement string/blank?)
+     (map #(when % (string/trim %)) scripts))))
+
+(defmethod checked-commands ::common-impl
+  [message & cmds]
+  (let [chained-cmds (apply chain-commands cmds)]
+    (if (string/blank? chained-cmds)
+      ""
+      (str
+        "echo \"" message "...\"" \newline
+        "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
+        \newline
+        "echo \"...done\"\n"))))

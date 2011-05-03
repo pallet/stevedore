@@ -223,42 +223,14 @@
   "Concatenate multiple scripts."
   (fn [& scripts] *stevedore-impl*))
 
-(defmethod do-script :default
-  [& scripts]
-  (str
-   (->>
-    scripts
-    (map #(when % (string/trim %)))
-    (filter (complement string/blank?))
-    (string/join \newline))
-   \newline))
-
 (defmulti chain-commands
   "Chain commands together with &&."
   (fn [& scripts] *stevedore-impl*))
-
-(defmethod chain-commands :default
-  [& scripts]
-  (string/join " && "
-    (filter
-     (complement string/blank?)
-     (map #(when % (string/trim %)) scripts))))
 
 (defmulti checked-commands
   "Wrap a command in a code that checks the return value. Code to output the
   messages is added before the command."
   (fn [message & cmds] *stevedore-impl*))
-
-(defmethod checked-commands :default
-  [message & cmds]
-  (let [chained-cmds (apply chain-commands cmds)]
-    (if (string/blank? chained-cmds)
-      ""
-      (str
-        "echo \"" message "...\"" \newline
-        "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
-        \newline
-        "echo \"...done\"\n"))))
 
 
 ;; These macros have an implicit `script` around each script argument
