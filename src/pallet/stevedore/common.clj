@@ -2,11 +2,55 @@
   (:require 
     [pallet.stevedore :as stevedore]
     [clojure.string :as string]
+    [clojure.contrib.seq :as c.seq]
     [clojure.contrib.logging :as logging])
   (:use
     [pallet.stevedore 
      :only [emit emit-special emit-function emit-infix emit-function-call
-            special-form? compound-form? infix-operator?]]))
+            with-stevedore-impl compound-form? infix-operator?]]))
+
+
+;;; * Keyword and Operator Classes
+(def
+  ^{:doc
+    "Special forms are handled explcitly by an implementation of
+     `emit-special`."
+    :private true}
+  special-forms
+  #{'if 'if-not 'when 'case 'aget 'aset 'get 'defn 'return 'set! 'var 'defvar
+    'let 'local 'literally 'deref 'do 'str 'quoted 'apply
+    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
+    'not 'println 'print 'group 'pipe 'chain-or
+    'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
+
+
+;;; Predicates for keyword/operator classes
+(defn special-form?
+  "Predicate to check if expr is a special form"
+  [expr]
+  (contains? special-forms expr))
+
+
+;;; Implementation coverage tests
+;;;
+;;; Example usage:
+;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
+(defn emit-special-coverage [impl]
+  "Returns a vector of two elements. First elements is a vector
+  of successfully dispatched special functions. Second element is a vector
+  of failed dispatches."
+  (c.seq/separate
+    (fn [s]
+      (try
+        (with-stevedore-impl impl
+          (emit-special s)
+        true
+        (catch Exception e
+          (not (.contains
+            (str e)
+            (str "java.lang.IllegalArgumentException: No method in multimethod 'emit-special' for dispatch value: [" impl " " s "]")))))))
+    special-forms))
+
 
 
 ;; Common implementation
