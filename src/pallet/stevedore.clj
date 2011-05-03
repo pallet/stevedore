@@ -55,42 +55,17 @@
      (binding [*stevedore-impl* ~impl]
        ~@body)))
 
-(defn compound-form?
-  "Predicate to check if expr is a compound form"
-  [expr]
-  (= 'do  (first expr)))
 
-(defmulti infix-operator?
-  "Predicate to check if expr is an infix operator. Each implementation
-  should implement it's own multimethod."
-  (fn [expr] *stevedore-impl*))
+;;;; Preprocessing functions
 
-;; Main dispatch functions
-(defmulti emit-special
-  "Emit a shell form as a string. Dispatched on the first element of the form."
-  (fn [ & args] [*stevedore-impl* (identity (first args))]))
+;; Splicing functions
 
-(defmulti emit
-  "Emit a shell expression as a string. Dispatched on the :type of the
-   expression."
-  (fn [ expr ] [*stevedore-impl* (type expr)]))
+(def 
+  ^{:doc "The empty splice"}
+  empty-splice
+    ::empty-splice)
 
-(defmulti emit-function
-  "Emit a shell function"
-  (fn [name doc? sig body] *stevedore-impl*))
-
-(defmulti emit-function-call
-  "Emit a shell function call"
-  (fn [name & args] *stevedore-impl*))
-
-(defmulti emit-infix
-  (fn [type [operator & args]] *stevedore-impl*))
-
-
-
-;;; Splicing functions
-
-(defn splice-list
+(defn- splice-list
   "Emit a collection as a space separated list.
        (splice-list [a b c]) => \"a b c\""
   [coll]
@@ -98,54 +73,14 @@
     (string/join " " coll)
     ;; to maintain unquote splicing semantics, this term has to disappear
     ;; from the result
-    ::empty-splice))
+    empty-splice))
 
 (defn filter-empty-splice
   [args]
-  (filter #(not= ::empty-splice %) args))
+  (filter #(not= empty-splice %) args))
 
 
-;;; High level string generation functions
-(def statement-separator "\n")
-
-(defn statement
-  "Emit an expression as a valid shell statement, with separator."
-  [expr]
-  ;; check the substring count, as it can be negative if there is a syntax issue
-  ;; in a stevedore expression, and generates a cryptic error message otherwise
-  (let [n (- (count expr) (count statement-separator))]
-    (if (and (pos? n) (not (= statement-separator (.substring expr n))))
-      (str expr statement-separator)
-      expr)))
-
-
-;; Common functions/predicates
-
-(defn emit-do [exprs]
-  (string/join (map (comp statement emit) (filter-empty-splice exprs))))
-
-
-;; `emit-script` is the main entry point for stevedore implementations.
-;; It should not be called by users. It is only public so it can be implemented
-;; by different implementations.
-;;
-;; The main requirement of implementations is this function being implemented.
-;;
-;; It is called via the public `script` function.
-
-(defmulti emit-script
-  (fn [forms] *stevedore-impl*))
-
-
-(defmethod emit-script :default
-  [forms]
-  (let [code (if (> (count forms) 1)
-               (emit-do (filter-empty-splice forms))
-               (let [form (first forms)]
-                 (if (= form ::empty-splice)
-                   ""
-                   (emit form))))]
-    code))
+;; Quote handling
 
 (defn- unquote?
   "Tests whether the form is (clj ...) or (unquote ...) or ~expr."
@@ -163,10 +98,11 @@
 (defn- handle-unquote [form]
   (second form))
 
+(declare emit)
 (defn- splice [form]
   (if (seq form)
     (string/join " " (map emit form))
-    ::empty-splice))
+    empty-splice))
 
 (defn- handle-unquote-splicing [form]
   (list splice (second form)))
@@ -191,7 +127,38 @@
     post-form))
 
 
-;; TODO move quausiquote to emit-script
+;;; High level string generation functions
+(def statement-separator "\n")
+
+(defn statement
+  "Emit an expression as a valid shell statement, with separator."
+  [expr]
+  ;; check the substring count, as it can be negative if there is a syntax issue
+  ;; in a stevedore expression, and generates a cryptic error message otherwise
+  (let [n (- (count expr) (count statement-separator))]
+    (if (and (pos? n) (not (= statement-separator (.substring expr n))))
+      (str expr statement-separator)
+      expr)))
+
+(defmulti emit
+  "Emit a shell expression as a string. Dispatched on the :type of the
+   expression."
+  (fn [ expr ] [*stevedore-impl* (type expr)]))
+
+(defn emit-do [exprs]
+  (string/join (map (comp statement emit) (filter-empty-splice exprs))))
+
+(defn emit-script
+  [forms]
+  (let [code (if (> (count forms) 1)
+               (emit-do (filter-empty-splice forms))
+               (let [form (first forms)]
+                 (if (= form empty-splice)
+                   ""
+                   (emit form))))]
+    code))
+
+
 ;; `script` is the public interface to stevedore. All scripts must be
 ;; wrapped in a `script` form.
 ;;
