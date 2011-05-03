@@ -35,30 +35,13 @@
                *script-file* ~file]
        ~@body)))
 
-;;; Define current stevedore implementation
-(def/defunbound *stevedore-impl*
-  "Current stevedore implementation")
 
-
-;; Whenever `script` is called, it must be wrapped in a `with-stevedore-impl`,
-;; which instructs which implementation to utilize.
+;; Preprocessing functions
 ;;
-;; (with-stevedore-impl :pallet.stevedore.bash/bash
-;;   (script
-;;     (println "asdf")))
-
-(defmacro with-stevedore-impl
-  "Set which stevedore implementation to use. Currently supports:
-   :pallet.stevedore.bash/bash"
-  [impl & body]
-  `(do
-     (binding [*stevedore-impl* ~impl]
-       ~@body)))
-
-
-;;;; Preprocessing functions
-
-;; Splicing functions
+;; Before code forms are passed to `emit`, an initial pass is taken over them to
+;; resolve unquotes, unquote-splices and other details via the macro `script`.
+;;
+;; These are a set of splicing utility functions.
 
 (def 
   ^{:doc "The empty splice"}
@@ -80,7 +63,7 @@
   (filter #(not= empty-splice %) args))
 
 
-;; Quote handling
+;; Unquote/splicing handling utility functions.
 
 (defn- unquote?
   "Tests whether the form is (clj ...) or (unquote ...) or ~expr."
@@ -107,7 +90,17 @@
 (defn- handle-unquote-splicing [form]
   (list splice (second form)))
 
+
+;; These functions are used for an initial scan over stevedore forms,
+;; resolving escaping to Clojure and quoting symbols to stop namespace
+;; resolution.
+
 (declare inner-walk outer-walk)
+
+(defmacro quasiquote
+  [form]
+  (let [post-form (walk/walk inner-walk outer-walk form)]
+    post-form))
 
 (defn- inner-walk [form]
   (cond
@@ -120,11 +113,6 @@
    (symbol? form) (list 'quote form)
    (seq? form) (list* 'list form)
    :else form))
-
-(defmacro quasiquote
-  [form]
-  (let [post-form (walk/walk inner-walk outer-walk form)]
-    post-form))
 
 
 ;;; High level string generation functions
@@ -159,11 +147,28 @@
     code))
 
 
-;; `script` is the public interface to stevedore. All scripts must be
-;; wrapped in a `script` form.
+;; `script` is the public interface to stevedore.
+;;
+;; Simply pass any number of Stevedore forms to `script`, and it will return a
+;; string coverting to the desired output language.
 ;;
 ;; (script
-;;   (println "asdf"))
+;;   (println "asdf")
+;;   (println "and another"))
+;;
+;; To specify which implementation to use, `script` must be wrapped in a `with-stevedore-impl`.
+;;
+;; (with-stevedore-impl :pallet.stevedore.bash/bash
+;;   (script
+;;     (println "asdf")))
+
+(defmacro with-stevedore-impl
+  "Set which stevedore implementation to use. Currently supports:
+   :pallet.stevedore.bash/bash"
+  [impl & body]
+  `(do
+     (binding [*stevedore-impl* ~impl]
+       ~@body)))
 
 (defmacro script
   "Takes one or more forms. Returns a string of the forms translated into
@@ -181,17 +186,19 @@
 ;;;
 ;;; Each script argument to these functions must be wrapped in
 ;;; an explicit `script`.
-;;; Eg. (do-script (script ls) (script ls))
+;;;
+;;; Eg. (do-script (script (ls)) (script (ls)))
 ;;;  => (script
-;;;       ls
-;;;       ls)
+;;;       (ls)
+;;;       (ls))
 
 (defmulti do-script
   "Concatenate multiple scripts."
   (fn [& scripts] *stevedore-impl*))
 
 (defmulti chain-commands
-  "Chain commands together with &&."
+  "Chain commands together. Commands are executed left-to-right and a command is
+  only executed if the last command in the chain did not fail."
   (fn [& scripts] *stevedore-impl*))
 
 (defmulti checked-commands
@@ -292,4 +299,3 @@
       ~&form
       (deprecate/rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
      (pallet.script/defimpl ~script ~specialisers [~@args] ~@body)))
-
