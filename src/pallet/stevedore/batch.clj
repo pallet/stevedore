@@ -1,13 +1,11 @@
 (ns pallet.stevedore.batch
   (:require
     [clojure.contrib.condition :as condition]
-    [clojure.string :as string]
-    pallet.stevedore.common)
+    [clojure.string :as string])
   (:use
+    [pallet.stevedore.common]
     [pallet.stevedore 
-     :only [emit emit-special emit-function-call emit-do emit-function emit-infix
-            infix-operator?]]
-    [pallet.stevedore :only [emit]]))
+     :only [emit emit-do]]))
 
 (derive ::batch :pallet.stevedore.common/common-impl)
 

@@ -2,19 +2,152 @@
   "Embed shell script in clojure.
 
    Shell script is embedded by wrapping in the `script` macro.
-       (script (ls)) => \"ls\"
+   (script (ls)) => \"ls\"
 
    The result of a `script` form is a string."
   (:require
-   [pallet.common.deprecate :as deprecate]
-   [clojure.contrib.def :as def]
-   [clojure.contrib.seq :as c.seq]
-   [clojure.string :as string]
-   [clojure.walk :as walk])
+    [pallet.common.deprecate :as deprecate]
+    [clojure.contrib.def :as def]
+    [clojure.string :as string]
+    [clojure.walk :as walk])
   (:use
-   [pallet.common.string :only [underscore]]))
+    [pallet.common.string :only [underscore]]))
 
-;;; Helper vars for parsing the stevedore DSL
+(declare *stevedore-impl*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; SCRIPT GENERATION PUBLIC INTERFACE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; `script` is the public interface to stevedore.
+;;
+;; Simply pass any number of Stevedore forms to `script`, and it will return a
+;; string coverting to the desired output language.
+;;
+;; (script
+;;   (println "asdf")
+;;   (println "and another"))
+;;
+;; To specify which implementation to use, `script` must be wrapped in `with-stevedore-impl`.
+;;
+;; (with-stevedore-impl :pallet.stevedore.bash/bash
+;;   (script
+;;     (println "asdf")))
+
+(defmacro with-stevedore-impl
+  "Set which stevedore implementation to use. Currently supports:
+   :pallet.stevedore.bash/bash"
+  [impl & body]
+  `(do
+     (binding [*stevedore-impl* ~impl]
+       ~@body)))
+
+(defmacro script
+  "Takes one or more forms. Returns a string of the forms translated into
+   shell script.
+       (script
+         (println \"hello\")
+         (ls -l \"*.sh\"))
+  Must be wrapped in `with-stevedore-impl`."
+  [& forms]
+  `(with-line-number [~*file* ~(:line (meta &form))]
+     (binding [*script-ns* ~*ns*]
+       (emit-script (quasiquote ~forms)))))
+
+
+;;; Public script combiners
+;;;
+;;; Each script argument to these functions must be wrapped in
+;;; an explicit `script`.
+;;;
+;;; Eg. (do-script (script (ls)) (script (ls)))
+;;;  => (script
+;;;       (ls)
+;;;       (ls))
+
+(defmulti do-script
+  "Concatenate multiple scripts."
+  (fn [& scripts] *stevedore-impl*))
+
+(defmulti chain-commands
+  "Chain commands together. Commands are executed left-to-right and a command is
+  only executed if the last command in the chain did not fail."
+  (fn [& scripts] *stevedore-impl*))
+
+(defmulti checked-commands
+  "Wrap a command in a code that checks the return value. Code to output the
+  messages is added before the command."
+  (fn [message & cmds] *stevedore-impl*))
+
+
+;; These macros have an implicit `script` around each script argument, but
+;; are otherwise identical their `*-commands` counterparts.
+;; 
+;; Eg. (chained-script ls ls)
+;;     => (script
+;;          ls
+;;          ls)
+
+(defmacro chained-script
+  "Takes one or more forms. Returns a string of the forms translated into a
+   chained shell script command."
+  [& forms]
+  `(chain-commands
+    ~@(map (fn [f] (list `script f)) forms)))
+
+(defmacro checked-script
+  "Takes one or more forms. Returns a string of the forms translated into
+   shell scrip.  Wraps the expression in a test for the result status."
+  [message & forms]
+  `(checked-commands ~message
+    ~@(map (fn [f] (list `script f)) forms)))
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; IMPLEMENTATION FUNDAMENTALS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; `emit` is the fundamental dispatch for stevedore implementations. It
+;; dispatches on the type of its argument.
+;; 
+;; Here is a common life cycle of a script generation.
+;;
+;; 1. Forms passed to `script`
+;;   (script 
+;;     (println "abc"))
+;;
+;; 2. Forms are passed individually to `emit`
+;;   (emit
+;;     (println "abc"))
+;;
+;; 3. `emit` finds correct dispatch (lists are usually the initial type)
+;;   (defmethod emit clojure.lang.IPersistentList
+;;      [form]
+;;      ...some-magic...)
+;; 
+;;    `emit` implementations usually have recursive calls. The above function
+;;    might eventually call a dispatch on java.lang.String to convert "abc".
+;;
+;; 4. A string results from the form.
+
+(defmulti emit
+  "Emit a shell expression as a string. Dispatched on the :type of the
+   expression."
+  (fn [ expr ] [*stevedore-impl* (type expr)]))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; IMPLEMENTATION DETAILS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Helper vars and functions for parsing the stevedore DSL.
 
 (def/defunbound *stevedore-impl*
   "Current stevedore implementation")
@@ -36,117 +169,20 @@
                *script-file* ~file]
        ~@body)))
 
-;;; Define current stevedore implementation
-(def/defunbound *stevedore-impl*
-  "Current stevedore implementation")
 
-(defmacro with-stevedore-impl
-  "Set which stevedore implementation to use. Currently supports:
-   :pallet.stevedore.bash/bash"
-  [impl & body]
-  `(do
-     (binding [*stevedore-impl* ~impl]
-       ~@body)))
+;; Preprocessing functions
+;;
+;; Before code forms are passed to `emit`, an initial pass is taken over them to
+;; resolve unquotes, unquote-splices and other details via the macro `script`.
+;;
+;; These are a set of splicing utility functions.
 
-;;; * Keyword and Operator Classes
-(def
-  ^{:doc
-    "Special forms are handled explcitly by an implementation of
-     `emit-special`."
-    :private true}
-  special-forms
-  #{'if 'if-not 'when 'case 'aget 'aset 'get 'defn 'return 'set! 'var 'defvar
-    'let 'local 'literally 'deref 'do 'str 'quoted 'apply
-    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
-    'not 'println 'print 'group 'pipe 'chain-or
-    'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
+(def 
+  ^{:doc "The empty splice"}
+  empty-splice
+    ::empty-splice)
 
-;; Dispatch functions
-(defn script-fn-dispatch-none
-  "Script function dispatch. This implementation does nothing."
-  [name args ns file line]
-  nil)
-
-(def ^{:doc "Script function dispatch."}
-  *script-fn-dispatch* script-fn-dispatch-none)
-
-(defn script-fn-dispatch!
-  "Set the script-fn dispatch function"
-  [f]
-  (alter-var-root #'*script-fn-dispatch* (fn [_] f)))
-
-(defmacro with-no-script-fn-dispatch
-  [& body]
-  `(binding [*script-fn-dispatch* script-fn-dispatch-none]
-     ~@body))
-
-(defmacro with-script-fn-dispatch
-  [f & body]
-  `(binding [*script-fn-dispatch* ~f]
-     ~@body))
-
-
-;;; Predicates for keyword/operator classes
-(defn special-form?
-  "Predicate to check if expr is a special form"
-  [expr]
-  (contains? special-forms expr))
-
-(defn compound-form?
-  "Predicate to check if expr is a compound form"
-  [expr]
-  (= 'do  (first expr)))
-
-(defmulti infix-operator?
-  "Predicate to check if expr is an infix operator. Each implementation
-  should implement it's own multimethod."
-  (fn [expr] *stevedore-impl*))
-
-;; Main dispatch functions
-(defmulti emit-special
-  "Emit a shell form as a string. Dispatched on the first element of the form."
-  (fn [ & args] [*stevedore-impl* (identity (first args))]))
-
-(defmulti emit
-  "Emit a shell expression as a string. Dispatched on the :type of the
-   expression."
-  (fn [ expr ] [*stevedore-impl* (type expr)]))
-
-(defmulti emit-function
-  "Emit a shell function"
-  (fn [name doc? sig body] *stevedore-impl*))
-
-(defmulti emit-function-call
-  "Emit a shell function call"
-  (fn [name & args] *stevedore-impl*))
-
-(defmulti emit-infix
-  (fn [type [operator & args]] *stevedore-impl*))
-
-;;; Implementation coverage tests
-;;;
-;;; Example usage:
-;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
-(defn emit-special-coverage [impl]
-  "Returns a vector of two elements. First elements is a vector
-  of successfully dispatched special functions. Second element is a vector
-  of failed dispatches."
-  (c.seq/separate
-    (fn [s]
-      (try
-        (with-stevedore-impl impl
-          (emit-special s)
-        true
-        (catch Exception e
-          (not (.contains
-            (str e)
-            (str "java.lang.IllegalArgumentException: No method in multimethod 'emit-special' for dispatch value: [" impl " " s "]")))))))
-    special-forms))
-
-
-;;; Splicing functions
-
-(defn splice-list
+(defn- splice-list
   "Emit a collection as a space separated list.
        (splice-list [a b c]) => \"a b c\""
   [coll]
@@ -154,40 +190,14 @@
     (string/join " " coll)
     ;; to maintain unquote splicing semantics, this term has to disappear
     ;; from the result
-    ::empty-splice))
+    empty-splice))
 
 (defn filter-empty-splice
   [args]
-  (filter #(not= ::empty-splice %) args))
+  (filter #(not= empty-splice %) args))
 
 
-;;; High level string generation functions
-(def statement-separator "\n")
-
-(defn statement
-  "Emit an expression as a valid shell statement, with separator."
-  [expr]
-  ;; check the substring count, as it can be negative if there is a syntax issue
-  ;; in a stevedore expression, and generates a cryptic error message otherwise
-  (let [n (- (count expr) (count statement-separator))]
-    (if (and (pos? n) (not (= statement-separator (.substring expr n))))
-      (str expr statement-separator)
-      expr)))
-
-
-;; Common functions/predicates
-
-(defn emit-do [exprs]
-  (string/join (map (comp statement emit) (filter-empty-splice exprs))))
-
-(defn script* [forms]
-  (let [code (if (> (count forms) 1)
-               (emit-do (filter-empty-splice forms))
-               (let [form (first forms)]
-                 (if (= form ::empty-splice)
-                   ""
-                   (emit form))))]
-    code))
+;; Unquote/splicing handling utility functions.
 
 (defn- unquote?
   "Tests whether the form is (clj ...) or (unquote ...) or ~expr."
@@ -205,15 +215,26 @@
 (defn- handle-unquote [form]
   (second form))
 
+(declare emit)
 (defn- splice [form]
   (if (seq form)
     (string/join " " (map emit form))
-    ::empty-splice))
+    empty-splice))
 
 (defn- handle-unquote-splicing [form]
   (list splice (second form)))
 
+
+;; These functions are used for an initial scan over stevedore forms,
+;; resolving escaping to Clojure and quoting symbols to stop namespace
+;; resolution.
+
 (declare inner-walk outer-walk)
+
+(defmacro quasiquote
+  [form]
+  (let [post-form (walk/walk inner-walk outer-walk form)]
+    post-form))
 
 (defn- inner-walk [form]
   (cond
@@ -227,86 +248,41 @@
    (seq? form) (list* 'list form)
    :else form))
 
-(defmacro quasiquote
-  [form]
-  (let [post-form (walk/walk inner-walk outer-walk form)]
-    post-form))
 
-(defmacro script
-  "Takes one or more forms. Returns a string of the forms translated into
-   shell script.
-       (script
-         (println \"hello\")
-         (ls -l \"*.sh\"))"
-  [& forms]
-  `(with-line-number [~*file* ~(:line (meta &form))]
-     (binding [*script-ns* ~*ns*]
-       (script* (quasiquote ~forms)))))
+;;; High level string generation functions
+(def statement-separator "\n")
 
-;;; Script combiners
-(defn do-script*
-  "Concatenate multiple scripts."
-  [scripts]
-  (str
-   (->>
-    scripts
-    (map #(when % (string/trim %)))
-    (filter (complement string/blank?))
-    (string/join \newline))
-   \newline))
+(defn statement
+  "Emit an expression as a valid shell statement, with separator."
+  [expr]
+  ;; check the substring count, as it can be negative if there is a syntax issue
+  ;; in a stevedore expression, and generates a cryptic error message otherwise
+  (let [n (- (count expr) (count statement-separator))]
+    (if (and (pos? n) (not (= statement-separator (.substring expr n))))
+      (str expr statement-separator)
+      expr)))
 
-(defn do-script
-  "Concatenate multiple scripts."
-  [& scripts]
-  (do-script* scripts))
+(defn emit-do [exprs]
+  (string/join (map (comp statement emit) (filter-empty-splice exprs))))
 
-(defn chain-commands*
-  "Chain commands together with &&."
-  [scripts]
-  (string/join " && "
-    (filter
-     (complement string/blank?)
-     (map #(when % (string/trim %)) scripts))))
+(defn emit-script
+  [forms]
+  (let [code (if (> (count forms) 1)
+               (emit-do (filter-empty-splice forms))
+               (let [form (first forms)]
+                 (if (= form empty-splice)
+                   ""
+                   (emit form))))]
+    code))
 
-(defn chain-commands
-  "Chain commands together with &&."
-  [& scripts]
-  (chain-commands* scripts))
 
-(defn checked-commands*
-  "Wrap a command in a code that checks the return value. Code to output the
-  messages is added before the command."
-  [message cmds]
-  (let [chained-cmds (chain-commands* cmds)]
-    (if (string/blank? chained-cmds)
-      ""
-      (str
-        "echo \"" message "...\"" \newline
-        "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
-        \newline
-        "echo \"...done\"\n"))))
 
-(defn checked-commands
-  "Wrap a command in a code that checks the return value. Code to output the
-  messages is added before the command."
-  [message & cmds]
-  (checked-commands* message cmds))
 
-(defmacro chained-script
-  "Takes one or more forms. Returns a string of the forms translated into a
-   chained shell script command."
-  [& forms]
-  `(chain-commands
-    ~@(map (fn [f] (list `script f)) forms)))
 
-(defmacro checked-script
-  "Takes one or more forms. Returns a string of the forms translated into
-   shell scrip.  Wraps the expression in a test for the result status."
-  [message & forms]
-  `(checked-commands ~message
-    ~@(map (fn [f] (list `script f)) forms)))
 
-;;; script argument helpers
+
+;;; Script argument helpers
+;;; TODO eliminate the need for this to be public by supporting literal maps for expansion
 (defn arg-string
   [option argument do-underscore do-assign dash]
   (let [opt (if do-underscore (underscore (name option)) (name option))]
@@ -335,6 +311,37 @@
     (map-to-arg-string
      (dissoc m :assign :underscore) :assign assign :underscore underscore)))
 
+
+;; Dispatch functions for script functions
+
+(defn script-fn-dispatch-none
+  "Script function dispatch. This implementation does nothing."
+  [name args ns file line]
+  nil)
+
+(def ^{:doc "Script function dispatch."}
+  *script-fn-dispatch* script-fn-dispatch-none)
+
+(defn script-fn-dispatch!
+  "Set the script-fn dispatch function"
+  [f]
+  (alter-var-root #'*script-fn-dispatch* (fn [_] f)))
+
+(defmacro with-no-script-fn-dispatch
+  [& body]
+  `(binding [*script-fn-dispatch* script-fn-dispatch-none]
+     ~@body))
+
+(defmacro with-script-fn-dispatch
+  [f & body]
+  `(binding [*script-fn-dispatch* ~f]
+     ~@body))
+
+
+
+
+;; DEPRECATED
+
 (defmacro defimpl
   {:deprecated "0.5.0"}
   [script specialisers [& args] & body]
@@ -344,4 +351,3 @@
       ~&form
       (deprecate/rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
      (pallet.script/defimpl ~script ~specialisers [~@args] ~@body)))
-
