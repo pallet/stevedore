@@ -61,30 +61,6 @@
     'not 'println 'print 'group 'pipe 'chain-or
     'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
 
-;; Dispatch functions
-(defn script-fn-dispatch-none
-  "Script function dispatch. This implementation does nothing."
-  [name args ns file line]
-  nil)
-
-(def ^{:doc "Script function dispatch."}
-  *script-fn-dispatch* script-fn-dispatch-none)
-
-(defn script-fn-dispatch!
-  "Set the script-fn dispatch function"
-  [f]
-  (alter-var-root #'*script-fn-dispatch* (fn [_] f)))
-
-(defmacro with-no-script-fn-dispatch
-  [& body]
-  `(binding [*script-fn-dispatch* script-fn-dispatch-none]
-     ~@body))
-
-(defmacro with-script-fn-dispatch
-  [f & body]
-  `(binding [*script-fn-dispatch* ~f]
-     ~@body))
-
 
 ;;; Predicates for keyword/operator classes
 (defn special-form?
@@ -180,7 +156,11 @@
 (defn emit-do [exprs]
   (string/join (map (comp statement emit) (filter-empty-splice exprs))))
 
-(defn script* [forms]
+(defmulti emit-script
+  (fn [forms] *stevedore-impl*))
+
+(defmethod emit-script :default
+  [forms]
   (let [code (if (> (count forms) 1)
                (emit-do (filter-empty-splice forms))
                (let [form (first forms)]
@@ -232,6 +212,7 @@
   (let [post-form (walk/walk inner-walk outer-walk form)]
     post-form))
 
+;; TODO move quausiquote to emit-script
 (defmacro script
   "Takes one or more forms. Returns a string of the forms translated into
    shell script.
@@ -241,12 +222,15 @@
   [& forms]
   `(with-line-number [~*file* ~(:line (meta &form))]
      (binding [*script-ns* ~*ns*]
-       (script* (quasiquote ~forms)))))
+       (emit-script (quasiquote ~forms)))))
 
 ;;; Script combiners
-(defn do-script*
+(defmulti do-script
   "Concatenate multiple scripts."
-  [scripts]
+  (fn [& scripts] *stevedore-impl*))
+
+(defmethod do-script :default
+  [& scripts]
   (str
    (->>
     scripts
@@ -255,29 +239,25 @@
     (string/join \newline))
    \newline))
 
-(defn do-script
-  "Concatenate multiple scripts."
-  [& scripts]
-  (do-script* scripts))
-
-(defn chain-commands*
+(defmulti chain-commands
   "Chain commands together with &&."
-  [scripts]
+  (fn [& scripts] *stevedore-impl*))
+
+(defmethod chain-commands :default
+  [& scripts]
   (string/join " && "
     (filter
      (complement string/blank?)
      (map #(when % (string/trim %)) scripts))))
 
-(defn chain-commands
-  "Chain commands together with &&."
-  [& scripts]
-  (chain-commands* scripts))
-
-(defn checked-commands*
+(defmulti checked-commands
   "Wrap a command in a code that checks the return value. Code to output the
   messages is added before the command."
-  [message cmds]
-  (let [chained-cmds (chain-commands* cmds)]
+  (fn [message & cmds] *stevedore-impl*))
+
+(defmethod checked-commands :default
+  [message & cmds]
+  (let [chained-cmds (apply chain-commands cmds)]
     (if (string/blank? chained-cmds)
       ""
       (str
@@ -285,12 +265,6 @@
         "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
         \newline
         "echo \"...done\"\n"))))
-
-(defn checked-commands
-  "Wrap a command in a code that checks the return value. Code to output the
-  messages is added before the command."
-  [message & cmds]
-  (checked-commands* message cmds))
 
 (defmacro chained-script
   "Takes one or more forms. Returns a string of the forms translated into a
@@ -306,7 +280,8 @@
   `(checked-commands ~message
     ~@(map (fn [f] (list `script f)) forms)))
 
-;;; script argument helpers
+;;; Script argument helpers
+;;; TODO eliminate the need for this to be public by supporting literal maps for expansion
 (defn arg-string
   [option argument do-underscore do-assign dash]
   (let [opt (if do-underscore (underscore (name option)) (name option))]
@@ -334,6 +309,37 @@
         underscore (:underscore m)]
     (map-to-arg-string
      (dissoc m :assign :underscore) :assign assign :underscore underscore)))
+
+
+;; Dispatch functions for script functions
+
+(defn script-fn-dispatch-none
+  "Script function dispatch. This implementation does nothing."
+  [name args ns file line]
+  nil)
+
+(def ^{:doc "Script function dispatch."}
+  *script-fn-dispatch* script-fn-dispatch-none)
+
+(defn script-fn-dispatch!
+  "Set the script-fn dispatch function"
+  [f]
+  (alter-var-root #'*script-fn-dispatch* (fn [_] f)))
+
+(defmacro with-no-script-fn-dispatch
+  [& body]
+  `(binding [*script-fn-dispatch* script-fn-dispatch-none]
+     ~@body))
+
+(defmacro with-script-fn-dispatch
+  [f & body]
+  `(binding [*script-fn-dispatch* ~f]
+     ~@body))
+
+
+
+
+;; DEPRECATED
 
 (defmacro defimpl
   {:deprecated "0.5.0"}

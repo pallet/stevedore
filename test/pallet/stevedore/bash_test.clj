@@ -299,16 +299,12 @@
     (is (= "fred\nblogs\n" (do-script "fred\n\n" "blogs\n")))
     (is (= "fred\nblogs\n" (do-script "fred\n\n" nil "blogs\n")))))
 
-(deftest chain-commands*-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
-    (is (= "fred" (chain-commands* ["fred"])))
-    (is (= "fred && blogs" (chain-commands* ["fred" "blogs"])))
-    (is (= "fred && blogs" (chain-commands* ["fred\n\n" "blogs\n"])))
-    (is (= "fred && blogs" (chain-commands* ["fred\n\n" nil "blogs\n"])))))
-
 (deftest chain-commands-test
   (with-stevedore-impl :pallet.stevedore.bash/bash
-
+    (is (= "fred" (apply chain-commands ["fred"])))
+    (is (= "fred && blogs" (apply chain-commands ["fred" "blogs"])))
+    (is (= "fred && blogs" (apply chain-commands ["fred\n\n" "blogs\n"])))
+    (is (= "fred && blogs" (apply chain-commands ["fred\n\n" nil "blogs\n"])))
     (is (= "fred" (chain-commands "fred")))
     (is (= "fred && blogs" (chain-commands "fred" "blogs")))
     (is (= "fred && blogs" (chain-commands "fred\n\n" "blogs\n")))
