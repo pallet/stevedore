@@ -3,11 +3,12 @@
    [pallet.common.string :only [quoted]]
    pallet.stevedore
    pallet.stevedore.batch
+   [pallet.stevedore.common :only [emit-special-coverage]]
    midje.sweet
    clojure.test))
 
 (deftest implementation-coverage-test
-  (future-fact "complete `emit-special` coverage"
+  (fact "complete `emit-special` coverage"
     (let [unimplemented (second (emit-special-coverage :pallet.stevedore.batch/batch))]
       unimplemented => empty?)))
 
@@ -60,6 +61,7 @@
   (with-stevedore-impl :pallet.stevedore.batch/batch
     (fact
       (script (println "hello")) => "echo hello"
+      (script (println "hello" @world)) => "echo hello %world%"
       (script (println "hello there")) => "echo hello there")))
 
 (deftest deref-test
@@ -76,3 +78,15 @@
     (facts
       (script (group (ls))) => "(\ncall:ls\n)"
       (script (group (ls) (ls))) => "(\ncall:ls\ncall:ls\n)")))
+
+(deftest test-fn
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact "Anonymous functions"
+          (script (defn [x y]
+                    (foo a) (bar b)))
+      => (throws java.lang.AssertionError))
+    (fact "positional arguments"
+      (script (defn foo [x y]
+                (foo a)))
+      => ":foo\nSETLOCAL\nset x=%~1%\nset y=%~2%\ncall:foo a\nGOTO :EOF")))
+

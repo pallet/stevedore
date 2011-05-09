@@ -49,12 +49,27 @@
 (defmethod emit [::batch clojure.lang.Symbol] [expr]
   (str expr))
 
+;; TODO copied from bash shflags, consolidate into common library
+(defn- deconstruct-sig [sig]
+  "Returns a vector with the first element being a vector
+  of arguments and second being a vector of flags"
+  (assert (vector? sig))
+  (let [[args flags :as dsig] (split-with symbol? sig)]
+    (assert (or (empty? flags) (every? vector? flags)))
+    dsig))
+
 (defmethod emit-function ::batch
   [name doc? sig body]
   (assert (symbol? name))
-  (str ":" name "\n"
-       (emit-do body)
-       "GOTO :EOF"))
+  (let [[args flags] (deconstruct-sig sig)]
+    (str ":" name "\n"
+         "SETLOCAL\n"
+         (when (seq args)
+           (str
+             (string/join "\n" (map #(str "set " (emit %1) "=" "%~" %2 "%") args (iterate inc 1)))
+             \newline))
+         (emit-do body)
+         "GOTO :EOF")))
 
 (defmethod emit-function-call ::batch
   [name & args]
