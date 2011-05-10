@@ -13,8 +13,8 @@
 (def infix-operators
   ^{:doc "Operators that should be converted to infix in expressions."
     :private true}
-  #{'+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '&& '||
-    'and 'or})
+  #{'+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '||
+    'or})
 
 (def
   ^{:doc "Conversion from clojure operators to shell infix operators."
@@ -103,3 +103,12 @@
 (defmethod emit-special [::batch 'group]
   [type [ group & exprs]]
   (str "(\n" (string/join "\n" (map emit exprs)) "\n)"))
+
+(defmethod emit-special [::batch 'if] [type [if test true-form & false-form]]
+  (str "if "
+       (emit test)
+       " (\n"
+       (emit true-form)
+       (when (first false-form)
+         (str "\n) else (\n" (emit (first false-form))))
+       "\n)"))

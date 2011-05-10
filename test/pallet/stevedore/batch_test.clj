@@ -90,3 +90,14 @@
                 (foo a)))
       => ":foo\nSETLOCAL\nset x=%~1%\nset y=%~2%\ncall:foo a\nGOTO :EOF")))
 
+(deftest test-if
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact "without else"
+      (script (if (= "foo" "bar")
+                (println "fred")))
+      => "if (foo == bar) (\necho fred\n)")
+    (fact "with else"
+      (script (if (= "foo" "bar")
+                (println "fred")
+                (println "foobar")))
+      => "if (foo == bar) (\necho fred\n) else (\necho foobar\n)")))
