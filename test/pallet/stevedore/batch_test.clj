@@ -95,9 +95,58 @@
     (fact "without else"
       (script (if (= "foo" "bar")
                 (println "fred")))
-      => "if (foo == bar) (\necho fred\n)")
+      => "if (foo EQU bar) (\necho fred\n)")
     (fact "with else"
       (script (if (= "foo" "bar")
                 (println "fred")
                 (println "foobar")))
-      => "if (foo == bar) (\necho fred\n) else (\necho foobar\n)")))
+      => "if (foo EQU bar) (\necho fred\n) else (\necho foobar\n)")))
+
+(deftest if-nested-test
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact 
+      (script (if (== "foo" "bar")
+                (if (!= "foo" "baz")
+                  (println "fred"))))
+      => "if (foo EQU bar) (\nif (foo NEQ baz) (\necho fred\n)\n)")))
+
+(deftest test-when
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact
+      (script (when (= "foo" "bar") 
+                (println "fred")))
+      => "if (foo EQU bar) (\necho fred\n\n)")
+    (fact 
+      (script (when "foo" 
+                (var x 3) 
+                (foo "x")
+                (bar "x")
+                (www "x")))
+      =>  "if foo (\nset x=3\ncall:foo x\ncall:bar x\ncall:www x\n\n)")))
+
+(deftest test-file-exists
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact 
+      (script (if (file-exists? "bar")
+                (println "fred"))))
+      => "if EXIST bar (\necho fred\n)"))
+
+(deftest test-if-not
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact 
+      (script (if-not (file-exists? "bar") 
+                (println "fred"))))
+      => "if [ ! -e bar ]; then echo fred;fi"
+    (future-fact "if-not and conjunction plays nicely" 
+      (script (if-not (and (file-exists? "bar") 
+                           (== "foo" "bar")) 
+                (println "fred")))
+      => "if [ ! \\( -e bar -a \\( \"foo\" EQU \"bar\" \\) \\) ]; then echo fred;fi")))
+
+(deftest text-infix-expr
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+    (fact 
+      (script (if-not (file-exists? "bar") 
+                (println "a")))
+      =>  "if NOT EXIST bar (\necho a\n)")))
+

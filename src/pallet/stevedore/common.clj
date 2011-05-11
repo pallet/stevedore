@@ -85,8 +85,9 @@
     'let 'local 'literally 'deref 'do 'str 'quoted 'apply
     'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
     'not 'println 'print 'group 'pipe 'chain-or
-    'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
-
+    'chain-and 'while 'doseq 'merge! 'assoc! 'alias
+    '+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| 
+    'and '&& '|| 'or})
 
 ;;; Predicates for keyword/operator classes
 (defn special-form?
@@ -143,8 +144,8 @@
       (cond
        (and (= (first (str head)) \.)
             (> (count (str head)) 1)) (emit-special 'dot-method expr1)
-       (special-form? head) (emit-special head expr1)
        (infix-operator? head) (emit-infix head expr1)
+       (special-form? head) (emit-special head expr1)
        :else (emit-special 'invoke expr)))
     (if (map? (first expr))
       (emit-special 'invoke expr)

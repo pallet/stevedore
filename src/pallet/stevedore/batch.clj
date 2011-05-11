@@ -10,26 +10,25 @@
 (derive ::batch :pallet.stevedore.common/common-impl)
 
 ;;; * Keyword and Operator Classes
-(def infix-operators
-  ^{:doc "Operators that should be converted to infix in expressions."
-    :private true}
-  #{'+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '||
-    'or})
-
 (def
   ^{:doc "Conversion from clojure operators to shell infix operators."
     :private true}
   infix-conversions
-     {'&& "-a"
-      'and "-a"
-      '|| "-o"
-      'or "-o"
-      '< "\\<"
-      '> "\\>"
-      '= "=="})
+     {'+ "+"
+      '* "*"
+      '/ "/"
+      '- "-"
+      '< "LSS"
+      '<= "LEQ"
+      '> "GTR"
+      '>= "GEQ"
+      '= "EQU"
+      '!= "NEQ"
+      '== "EQU"
+      '% "%%"})
 
 (defmethod infix-operator? ::batch [expr]
-  (contains? infix-operators expr))
+  (contains? infix-conversions expr))
 
 (defmethod emit-infix ::batch [type [operator & args]]
   (when (< (count args) 2)
@@ -86,6 +85,8 @@
 
 (defmethod emit-special [::batch 'set!] [type [set! var val]]
   (str "set " (check-symbol (emit var)) "=" (emit val)))
+(defmethod emit-special [::batch 'var] [type [set! var val]]
+  (str "set " (check-symbol (emit var)) "=" (emit val)))
 
 (defmethod emit [::batch java.lang.String] [expr]
   expr)
@@ -104,11 +105,26 @@
   [type [ group & exprs]]
   (str "(\n" (string/join "\n" (map emit exprs)) "\n)"))
 
-(defmethod emit-special [::batch 'if] [type [if test true-form & false-form]]
-  (str "if "
+(defmethod emit-special [::batch 'do] [type [ do & exprs]]
+  (emit-do exprs))
+
+(defn- gen-if-statement [if test true-form false-form]
+  (str if
        (emit test)
        " (\n"
        (emit true-form)
-       (when (first false-form)
-         (str "\n) else (\n" (emit (first false-form))))
+       (when (seq false-form)
+         (str "\n) else (\n" (emit false-form)))
        "\n)"))
+
+(defmethod emit-special [::batch 'if] [type [if test true-form & false-form]]
+  (gen-if-statement "if " test true-form false-form))
+
+(defmethod emit-special [::batch 'if-not] [type [if test true-form & false-form]]
+  (gen-if-statement "if NOT " test true-form false-form))
+
+(defmethod emit-special [::batch 'when] [type [when test & form]]
+  (gen-if-statement "if " test (cons 'do form) nil))
+
+(defmethod emit-special [::batch 'file-exists?] [type [file-exists? path]]
+  (str "EXIST " (emit path)))
