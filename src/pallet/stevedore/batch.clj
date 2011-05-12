@@ -128,3 +128,11 @@
 
 (defmethod emit-special [::batch 'file-exists?] [type [file-exists? path]]
   (str "EXIST " (emit path)))
+
+(defmethod emit-special [::batch 'pipe]
+  [type [ pipe & exprs]]
+  (string/join " | " (map emit exprs)))
+
+(defmethod emit-special [::batch 'return] [type [return expr]]
+  (str "exit /b " (emit expr)))
+

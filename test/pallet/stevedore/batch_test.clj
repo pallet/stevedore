@@ -7,6 +7,8 @@
    midje.sweet
    clojure.test))
 
+;; Batch function library http://www.dostips.com/DtCodeCmdLib.php
+
 (deftest implementation-coverage-test
   (fact "complete `emit-special` coverage"
     (let [unimplemented (second (emit-special-coverage :pallet.stevedore.batch/batch))]
@@ -39,9 +41,9 @@
 
 (deftest test-return
   (with-stevedore-impl :pallet.stevedore.batch/batch
-    (future-fact "handle return values from functions"
+    (fact "handle return values from functions"
       ;; http://www.dostips.com/DtTutoFunctions.php
-      (script (return 42)) => "return 42")))
+      (script (return 42)) => "exit /b 42")))
 
 (deftest test-set!
   (with-stevedore-impl :pallet.stevedore.batch/batch
@@ -71,6 +73,7 @@
     (future-fact "support default value for defrefencing"
       (script @TMPDIR-/tmp) => "%TMPDIR%-/tmp")
     (future-fact "support equivilant of `ls`"
+      ;; here's a solution: http://www.dostips.com/DtCodeCmdLib.php#Function.set
       (script @(ls)) "$(ls)")))
 
 (deftest group-test
@@ -150,3 +153,11 @@
                 (println "a")))
       =>  "if NOT EXIST bar (\necho a\n)")))
 
+(deftest pipe-test
+  (with-stevedore-impl :pallet.stevedore.batch/batch
+
+    (is (= "call:ls"
+           (script (pipe (ls)))))
+    (is (= "call:ls | call:ls"
+           (script (pipe (ls) 
+                         (ls)))))))
