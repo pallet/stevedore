@@ -1,6 +1,6 @@
 (ns pallet.script-test
   (:use
-   [pallet.stevedore :only [with-stevedore-impl]]
+   [pallet.stevedore :only [with-script-language]]
    pallet.script
    clojure.test))
 
@@ -72,7 +72,7 @@
       (is (= [2 3] (dispatch script2 [1 1 2 3]))))))
 
 (deftest dispatch-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (let [x (script-fn [a])]
       (testing "with no implementation"
         (testing "should raise"

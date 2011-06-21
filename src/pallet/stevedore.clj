@@ -13,7 +13,7 @@
   (:use
     [pallet.common.string :only [underscore]]))
 
-(declare *stevedore-impl*)
+(declare *script-language*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; SCRIPT GENERATION PUBLIC INTERFACE
@@ -29,19 +29,18 @@
 ;;   (println "and another"))
 ;;
 ;; To specify which implementation to use, `script` must be wrapped in
-;; `with-stevedore-impl`.
+;; `with-script-language`.
 ;;
-;; (with-stevedore-impl :pallet.stevedore.bash/bash
+;; (with-script-language :pallet.stevedore.bash/bash
 ;;   (script
 ;;     (println "asdf")))
 
-(defmacro with-stevedore-impl
+(defmacro with-script-language
   "Set which stevedore implementation to use. Currently supports:
    :pallet.stevedore.bash/bash"
   [impl & body]
-  `(do
-     (binding [*stevedore-impl* ~impl]
-       ~@body)))
+  `(binding [*script-language* ~impl]
+    ~@body))
 
 (defmacro script
   "Takes one or more forms. Returns a string of the forms translated into
@@ -49,7 +48,7 @@
        (script
          (println \"hello\")
          (ls -l \"*.sh\"))
-  Must be wrapped in `with-stevedore-impl`."
+  Must be wrapped in `with-script-language`."
   [& forms]
   `(with-line-number [~*file* ~(:line (meta &form))]
      (binding [*script-ns* ~*ns*]
@@ -68,17 +67,17 @@
 
 (defmulti do-script
   "Concatenate multiple scripts."
-  (fn [& scripts] *stevedore-impl*))
+  (fn [& scripts] *script-language*))
 
 (defmulti chain-commands
   "Chain commands together. Commands are executed left-to-right and a command is
   only executed if the last command in the chain did not fail."
-  (fn [& scripts] *stevedore-impl*))
+  (fn [& scripts] *script-language*))
 
 (defmulti checked-commands
   "Wrap a command in a code that checks the return value. Code to output the
   messages is added before the command."
-  (fn [message & cmds] *stevedore-impl*))
+  (fn [message & cmds] *script-language*))
 
 ;; These functions are identical to the `*-commands` counterparts, except
 ;; that they take a sequence argument.
@@ -157,7 +156,7 @@
 (defmulti emit
   "Emit a shell expression as a string. Dispatched on the :type of the
    expression."
-  (fn [ expr ] [*stevedore-impl* (type expr)]))
+  (fn [ expr ] [*script-language* (type expr)]))
 
 
 
@@ -169,7 +168,7 @@
 
 ;;; Helper vars and functions for parsing the stevedore DSL.
 
-(def/defunbound *stevedore-impl*
+(def/defunbound *script-language*
   "Current stevedore implementation")
 
 (def/defunbound *script-ns*

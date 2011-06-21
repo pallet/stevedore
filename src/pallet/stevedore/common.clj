@@ -6,8 +6,8 @@
     [clojure.contrib.logging :as logging])
   (:use
     [pallet.stevedore
-     :only [emit *stevedore-impl*
-            with-stevedore-impl filter-empty-splice empty-splice
+     :only [emit *script-language*
+            with-script-language filter-empty-splice empty-splice
             do-script chain-commands checked-commands]]))
 
 
@@ -46,18 +46,18 @@
 
 (defmulti emit-special
   "Emit a shell form as a string. Dispatched on the first element of the form."
-  (fn [ & args] [*stevedore-impl* (identity (first args))]))
+  (fn [ & args] [*script-language* (identity (first args))]))
 
 (defmulti emit-function
   "Emit a shell function"
-  (fn [name doc? sig body] *stevedore-impl*))
+  (fn [name doc? sig body] *script-language*))
 
 (defmulti emit-function-call
   "Emit a shell function call"
-  (fn [name & args] *stevedore-impl*))
+  (fn [name & args] *script-language*))
 
 (defmulti emit-infix
-  (fn [type [operator & args]] *stevedore-impl*))
+  (fn [type [operator & args]] *script-language*))
 
 
 
@@ -71,7 +71,7 @@
 (defmulti infix-operator?
   "Predicate to check if expr is an infix operator. Each implementation
   should implement it's own multimethod."
-  (fn [expr] *stevedore-impl*))
+  (fn [expr] *script-language*))
 
 
 
@@ -107,7 +107,7 @@
   (c.seq/separate
     (fn [s]
       (try
-        (with-stevedore-impl impl
+        (with-script-language impl
           (emit-special s)
         true
         (catch Exception e

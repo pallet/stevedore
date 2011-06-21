@@ -42,41 +42,41 @@
       (.replaceAll "[ ]+" " ")
       .trim))
 
-(with-stevedore-impl :pallet.stevedore.bash/bash
+(with-script-language :pallet.stevedore.bash/bash
   (script
     (.dot-method balh "lbha" "alsd")))
 
 
 (deftest number-literal
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "42" (script 42)))
     (is (= "0.5" (script 1/2)))))
 
 (deftest simple-call-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "a b" (script (a b))))))
 
 (deftest call-multi-arg-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "a b c" (script (a b c))))))
 
 (deftest test-arithmetic
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "(x * y)" (script (* x y))))))
 
 (deftest test-return
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "return 42" (strip-ws (script (return 42)))))))
 
 (deftest test-script-call
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (let [name "name1"]
       (is (= "grep \"^name1\" /etc/passwd"
              (script (grep ~(str "\"^" name "\"") "/etc/passwd")))))))
 
 
 (deftest test-clj
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (let [foo 42
           bar [1 2 3]]
       (is (= "42" (script (clj foo))))
@@ -84,12 +84,12 @@
       (is (= "foo 1 2 3" (script (apply foo ~bar)))))))
 
 (deftest test-str
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "foobar"
            (script (str foo bar))))))
 
 (deftest test-fn
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (thrown? java.lang.AssertionError
                  (strip-ws (script (defn [x y]
                                      (foo a) (bar b)))))
@@ -121,36 +121,36 @@
 
 
 (deftest test-aget
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "${foo[2]}" (script (aget foo 2))))))
 
 
 (deftest test-aset
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo[2]=1" (script (aset foo 2 1))))))
 
 (deftest test-set!
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (set! foo 1))))
     (is (thrown? clojure.contrib.condition.Condition
                  (script (set! foo-bar 1))))))
 
 (deftest var-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (var foo 1))))
     (is (thrown? clojure.contrib.condition.Condition
                  (script (var foo-bar 1))))))
 
 (deftest alias-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "alias foo='ls -l'" (script (alias foo (ls -l)))))))
 
 (deftest test-array
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "(1 2 \"3\" foo)" (script [1 "2" "\"3\"" :foo])))))
 
 (deftest test-if
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then echo fred;fi"
            (script (if (= foo bar) (println fred)))))
     (is (= "if [ \\( \\( \"foo\" == \"bar\" \\) -a \\( \"foo\" != \"baz\" \\) \\) ]; then echo fred;fi"
@@ -175,7 +175,7 @@
                     (script (if (file-exists? "f") "ls\nls")))))))
 
 (deftest if-nested-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then\nif [ \\( \"foo\" != \"baz\" \\) ]; then echo fred;fi\nfi"
            (script (if (== foo bar)
                      (if (!= foo baz)
@@ -185,7 +185,7 @@
                                     (println fred)))))))))
 
 (deftest test-if-not
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "if [ ! -e bar ]; then echo fred;fi"
            (script (if-not (file-exists? bar) (println fred)))))
     (is (= "if [ ! \\( -e bar -a \\( \"foo\" == \"bar\" \\) \\) ]; then echo fred;fi"
@@ -197,27 +197,27 @@
                                (println "fred"))))))))
 
 (deftest test-when
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then\necho fred\nfi"
            (script (when (= foo bar) (println fred)))))
     (is (= "if foo; then\nx=3\nfoo x\nfi"
            (script (when foo (var x 3) (foo x)))))))
 
 (deftest test-case
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "case ${X} in\n1)\nsomething;;\n\"2\")\nsomething else;;\nesac"
            (script (case @X
                          1 (something)
                          ~(quoted "2") (something else)))))))
 
 (deftest test-doseq
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "for X in 1 2 3; do\nsomething ${X}\ndone"
            (script (doseq [X [1 2 3]] (something @X)))))))
 
 
 (deftest test-map
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "([packages]=(columnchart))"
            (strip-ws (script {:packages ["columnchart"]}))))
     (is (= "{ hash_set x p c; hash_set x q d; }\necho ${x[p]}"
@@ -251,7 +251,7 @@
 
 
 (deftest test-do
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "let x=3\nlet y=4\nlet z=(x + y)"
            (strip-ws
              (script
@@ -267,12 +267,12 @@
                (println @z)))))))
 
 (deftest deref-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "${TMPDIR-/tmp}" (script @TMPDIR-/tmp)))
     (is (= "$(ls)" (script @(ls))))))
 
 (deftest test-combine-forms
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (let [stuff (quote (do
                          (local x 3)
                          (local y 4)))]
@@ -280,26 +280,26 @@
              (strip-ws (script (defn foo [x] ~stuff))))))))
 
 (deftest defvar-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "x=1"
            (script (defvar x 1))))))
 
 (deftest println-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "echo hello"
            (script (println "hello"))))
     (is (= "echo hello there"
            (script (println "hello there"))))))
 
 (deftest do-script-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "fred\n" (do-script "fred")))
     (is (= "fred\nblogs\n" (do-script "fred" "blogs")))
     (is (= "fred\nblogs\n" (do-script "fred\n\n" "blogs\n")))
     (is (= "fred\nblogs\n" (do-script "fred\n\n" nil "blogs\n")))))
 
 (deftest chain-commands-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
     (is (= "fred" (apply chain-commands ["fred"])))
     (is (= "fred && blogs" (apply chain-commands ["fred" "blogs"])))
     (is (= "fred && blogs" (apply chain-commands ["fred\n\n" "blogs\n"])))
@@ -310,13 +310,13 @@
     (is (= "fred && blogs" (chain-commands "fred\n\n" nil "blogs\n")))))
 
 (deftest chain-script-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "fred" (chained-script (fred))))
     (is (= "fred && blogs" (chained-script (fred) (blogs))))))
 
 (deftest checked-commands-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "echo \"test...\"\n{ echo fred && echo tom; } || { echo \"test\" failed; exit 1; } >&2 \necho \"...done\"\n"
            (checked-commands "test" "echo fred" "echo tom")))
@@ -329,7 +329,7 @@
              (checked-commands "test" "test 1 = 2") 1 "test failed\n")))))
 
 (deftest checked-script-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= (checked-commands "msg" (script ls) (script ls))
            (checked-script "msg" (ls) (ls))))
@@ -343,7 +343,7 @@
            (bash-out (checked-script "test" ("test" 1 = 2)) 1 "test failed\n")))))
 
 (deftest group-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "{ ls; }"
            (script (group (ls)))))
@@ -351,7 +351,7 @@
            (script (group (ls) (ls)))))))
 
 (deftest pipe-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "ls"
            (script (pipe (ls)))))
@@ -359,13 +359,13 @@
            (script (pipe (ls) (ls)))))))
 
 (deftest empty?-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "if [ -z ${a} ]; then echo true;fi"
            (script (if (empty? @a) (println true)))))))
 
 (deftest unquote-splicing-test
-  (with-stevedore-impl :pallet.stevedore.bash/bash
+  (with-script-language :pallet.stevedore.bash/bash
 
     (is (= "a b c" (script ~@["a" "b" "c"])))
     (is (= "x" (script x ~@[])))
