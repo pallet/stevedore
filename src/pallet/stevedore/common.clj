@@ -1,11 +1,11 @@
 (ns pallet.stevedore.common
-  (:require 
+  (:require
     [pallet.stevedore :as stevedore]
     [clojure.string :as string]
     [clojure.contrib.seq :as c.seq]
     [clojure.contrib.logging :as logging])
   (:use
-    [pallet.stevedore 
+    [pallet.stevedore
      :only [emit *stevedore-impl*
             with-stevedore-impl filter-empty-splice empty-splice
             do-script chain-commands checked-commands]]))
@@ -18,7 +18,7 @@
 ;;
 ;; For example (emit (ls "asdf")) dispatches on `clojure.lang.IPersistentList`.
 ;;
-;; The above example, along with some others, call `emit-special`,
+;; The above example, along with some others, call `emit-special`
 ;; `emit-function` or `emit-function-call`.
 ;;
 ;; For example:
@@ -26,22 +26,23 @@
 ;;  (emit (ls "asdf"))
 ;; calls
 ;;  (emit-special 'ls (ls "asdf"))
-;; ,
-;;  (emit (defn foo [a] 
-;;          "Docstring" 
+;;
+;;  (emit (defn foo [a]
+;;          "Docstring"
 ;;          (println "asdf")))
 ;; calls
 ;;  (emit-function foo "Docstring" [a] (println "asdf"))
-;; ,
+;;
 ;;  (emit (test-fn 1 2 "a"))
 ;; calls
 ;;  (emit-function-call test-fn [1 2 "a"])
 ;;
-;; Generally, the implementations of `emit` in pallet.stevedore.common which dispatch on compound types
-;; should be sufficient for most implementations. 
+;; Generally, the implementations of `emit` in pallet.stevedore.common, which
+;; dispatch on compound types, should be sufficient for most implementations.
 ;;
-;; The other emit-* functions are convenience functions 
-;; which avoid the need to reimplement all of `emit` for each Stevedore implementation.
+;; The other emit-* functions are convenience functions
+;; which avoid the need to reimplement all of `emit` for each Stevedore
+;; implementation.
 
 (defmulti emit-special
   "Emit a shell form as a string. Dispatched on the first element of the form."
@@ -112,7 +113,8 @@
         (catch Exception e
           (not (.contains
             (str e)
-            (str "java.lang.IllegalArgumentException: No method in multimethod 'emit-special' for dispatch value: [" impl " " s "]")))))))
+            (str "java.lang.IllegalArgumentException: No method in multimethod "
+                 "'emit-special' for dispatch value: [" impl " " s "]")))))))
     special-forms))
 
 
@@ -124,7 +126,8 @@
   (if (map? name)
     (try
       (stevedore/*script-fn-dispatch*
-       name (filter-empty-splice args) stevedore/*script-ns* stevedore/*script-file* stevedore/*script-line*)
+       name (filter-empty-splice args)
+       stevedore/*script-ns* stevedore/*script-file* stevedore/*script-line*)
       (catch java.lang.IllegalArgumentException e
         (throw (java.lang.IllegalArgumentException.
                 (str "Invalid arguments for " name) e))))
@@ -149,7 +152,8 @@
     (if (map? (first expr))
       (emit-special 'invoke expr)
       (when (seq expr)
-        (string/join " " (filter (complement string/blank?) (map emit expr)))))))
+        (string/join
+         " " (filter (complement string/blank?) (map emit expr)))))))
 
 (defn- spread
   [arglist]

@@ -129,7 +129,7 @@
       <artifactId>server</artifactId>
       <version>2.2.0</version>
       <optional>true</optional>
-    </dependency> 
+    </dependency>
     <dependency>
       <groupId>autodoc</groupId>
       <artifactId>autodoc</artifactId>

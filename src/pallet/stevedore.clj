@@ -28,7 +28,8 @@
 ;;   (println "asdf")
 ;;   (println "and another"))
 ;;
-;; To specify which implementation to use, `script` must be wrapped in `with-stevedore-impl`.
+;; To specify which implementation to use, `script` must be wrapped in
+;; `with-stevedore-impl`.
 ;;
 ;; (with-stevedore-impl :pallet.stevedore.bash/bash
 ;;   (script
@@ -82,7 +83,7 @@
 
 ;; These macros have an implicit `script` around each script argument, but
 ;; are otherwise identical their `*-commands` counterparts.
-;; 
+;;
 ;; Eg. (chained-script ls ls)
 ;;     => (script
 ;;          ls
@@ -113,11 +114,11 @@
 
 ;; `emit` is the fundamental dispatch for stevedore implementations. It
 ;; dispatches on the type of its argument.
-;; 
+;;
 ;; Here is a common life cycle of a script generation.
 ;;
 ;; 1. Forms passed to `script`
-;;   (script 
+;;   (script
 ;;     (println "abc"))
 ;;
 ;; 2. Forms are passed individually to `emit`
@@ -128,7 +129,7 @@
 ;;   (defmethod emit clojure.lang.IPersistentList
 ;;      [form]
 ;;      ...some-magic...)
-;; 
+;;
 ;;    `emit` implementations usually have recursive calls. The above function
 ;;    might eventually call a dispatch on java.lang.String to convert "abc".
 ;;
@@ -177,7 +178,7 @@
 ;;
 ;; These are a set of splicing utility functions.
 
-(def 
+(def
   ^{:doc "The empty splice"}
   empty-splice
     ::empty-splice)
@@ -225,7 +226,7 @@
   (list splice (second form)))
 
 
-;; These functions are used for an initial scan over stevedore forms,
+;; These functions are used for an initial scan over stevedore forms
 ;; resolving escaping to Clojure and quoting symbols to stop namespace
 ;; resolution.
 
@@ -282,7 +283,8 @@
 
 
 ;;; Script argument helpers
-;;; TODO eliminate the need for this to be public by supporting literal maps for expansion
+;;; TODO eliminate the need for this to be public by supporting literal maps for
+;;; expansion
 (defn arg-string
   [option argument do-underscore do-assign dash]
   (let [opt (if do-underscore (underscore (name option)) (name option))]

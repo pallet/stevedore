@@ -79,7 +79,8 @@
          (shflags-setup)
          (when (seq args)
            (str
-             (string/join "\n" (map #(str (emit %1) "=" "$" %2) args (iterate inc 1)))
+             (string/join
+              "\n" (map #(str (emit %1) "=" "$" %2) args (iterate inc 1)))
              \newline)))))
 
 

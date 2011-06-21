@@ -4,7 +4,7 @@
     [clojure.string :as string])
   (:use
     [pallet.stevedore.common]
-    [pallet.stevedore 
+    [pallet.stevedore
      :only [emit emit-do]]))
 
 (derive ::batch :pallet.stevedore.common/common-impl)

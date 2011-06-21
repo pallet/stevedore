@@ -1,7 +1,7 @@
 (ns pallet.stevedore.bash-test
   (:use
    [pallet.common.string :only [quoted]]
-   pallet.stevedore 
+   pallet.stevedore
    clojure.test)
   (:require
    [pallet.script :as script]
@@ -44,7 +44,7 @@
       .trim))
 
 (with-stevedore-impl :pallet.stevedore.bash/bash
-  (script 
+  (script
     (.dot-method balh "lbha" "alsd")))
 
 
@@ -97,26 +97,26 @@
         "anonymous")
 
     (is (= "foo() {\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
-           (strip-ws (script (defn foo [x y] 
+           (strip-ws (script (defn foo [x y]
                                (foo a) (bar b)))))
         "without flags")
 
     (is (= "foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nfoo a\nbar b\n}"
-           (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]] 
+           (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]]
                                (foo a) (bar b)))))
         "with flags only")
 
     (is (= "foo() {\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
-           (strip-ws (script (defn foo [x y 
-                                        [:string "host" "h" "Doc" "default"]] 
+           (strip-ws (script (defn foo [x y
+                                        [:string "host" "h" "Doc" "default"]]
                                (foo a) (bar b)))))
         "with flags and arguments")
 
     (is (= "foo() {\nFLAGS_HELP=\"This is doc\"\nDEFINE_string \"host\" \"default\" \"Doc\" \"h\"\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
-           (strip-ws (script (defn foo 
-                               "This is doc" 
-                               [x y 
-                                [:string "host" "h" "Doc" "default"]] 
+           (strip-ws (script (defn foo
+                               "This is doc"
+                               [x y
+                                [:string "host" "h" "Doc" "default"]]
                                (foo a) (bar b)))))
         "with docstring and arguments")))
 
