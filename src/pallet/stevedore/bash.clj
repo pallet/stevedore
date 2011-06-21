@@ -1,6 +1,7 @@
 (ns pallet.stevedore.bash
   (:require
     [pallet.common.resource :as resource]
+    [pallet.common.string :as common-string]
     [clojure.contrib.condition :as condition]
     [clojure.string :as string])
   (:use
@@ -198,7 +199,7 @@
   (apply clojure.core/str (map emit args)))
 
 (defmethod emit-special [::bash 'quoted] [type [quoted arg]]
-  (quoted (emit arg)))
+  (common-string/quoted (emit arg)))
 
 (defmethod emit-special [::bash 'println] [type [println & args]]
   (str "echo " (emit args)))

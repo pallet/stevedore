@@ -88,6 +88,11 @@
     (is (= "foobar"
            (script (str foo bar))))))
 
+(deftest test-quoted
+  (with-script-language :pallet.stevedore.bash/bash
+    (is (= "\"foobar\""
+           (script (quoted (str foo bar)))))))
+
 (deftest test-fn
   (with-script-language :pallet.stevedore.bash/bash
     (is (thrown? java.lang.AssertionError
