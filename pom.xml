@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-pom</artifactId>
-    <version>0.4.3</version>
+    <version>0.4.4-SNAPSHOT</version>
     <relativePath>../pallet-pom</relativePath>
   </parent>
   <groupId>org.cloudhoist</groupId>
@@ -96,6 +96,10 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure-contrib</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.logging</artifactId>
     </dependency>
     <dependency>
       <groupId>org.cloudhoist</groupId>

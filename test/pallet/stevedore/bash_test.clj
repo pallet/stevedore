@@ -8,9 +8,9 @@
    [pallet.stevedore.common]
    [pallet.stevedore.bash]
    [pallet.common.filesystem :as filesystem]
-   [pallet.common.logging.log4j :as log4j]
+   [pallet.common.logging.logutils :as logutils]
    [pallet.common.shell :as shell]
-   [clojure.contrib.logging :as logging]))
+   [clojure.tools.logging :as logging]))
 
 (defmacro bash-out
   "Check output of bash. Implemented as a macro so that errors appear on the
@@ -19,10 +19,9 @@
   ([str exit err-msg]
      `(let [r# (shell/bash ~str)]
         (when-not (= ~exit (:exit r#))
-          (logging/error
-           (format
-            "Unexpected exit status:\n:cmd %s\n:out %s\n:err %s"
-            ~str (:out r#) (:err r#))))
+          (logging/errorf
+           "Unexpected exit status:\n:cmd %s\n:out %s\n:err %s"
+           ~str (:out r#) (:err r#)))
         (is (= ~err-msg (:err r#)))
         (is (= ~exit (:exit r#)))
         (:out r#))))
@@ -389,6 +388,6 @@
       (let [x [:a 1]]
         (is (= "xfn a 1" (script (xfn ~@x))))))))
 
-(log4j/with-appender-threshold [:error]
+(logutils/with-threshold [:error]
   (script/defscript x [a])
   (defimpl x :default [a] a))
