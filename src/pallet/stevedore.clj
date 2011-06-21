@@ -80,6 +80,25 @@
   messages is added before the command."
   (fn [message & cmds] *stevedore-impl*))
 
+;; These functions are identical to the `*-commands` counterparts, except
+;; that they take a sequence argument.
+
+(defn do-script*
+  "Concatenate multiple scripts"
+  [scripts]
+  (apply do-script scripts))
+
+(defn chain-commands*
+  "Chain commands together. Commands are executed left-to-right and a command is
+  only executed if the last command in the chain did not fail."
+  [scripts]
+  (apply chain-commands scripts))
+
+(defn checked-commands*
+  "Wrap a command in a code that checks the return value. Code to output the
+  messages is added before the command."
+  [message scripts]
+  (apply checked-commands message scripts))
 
 ;; These macros have an implicit `script` around each script argument, but
 ;; are otherwise identical their `*-commands` counterparts.
