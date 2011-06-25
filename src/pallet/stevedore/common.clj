@@ -2,7 +2,6 @@
   (:require
     [pallet.stevedore :as stevedore]
     [clojure.string :as string]
-    [clojure.contrib.seq :as c.seq]
     [clojure.tools.logging :as logging])
   (:use
     [pallet.stevedore
@@ -98,28 +97,34 @@
 
 ;;; Implementation coverage tests
 ;;;
-;;; Example usage:
-;;;  (emit-special-coverage :pallet.stevedore.bash/bash)
-(defn emit-special-coverage [impl]
-  "Returns a vector of two elements. First elements is a vector
-  of successfully dispatched special functions. Second element is a vector
-  of failed dispatches."
-  (c.seq/separate
-    (fn [s]
-      (try
-        (with-script-language impl
-          (emit-special s)
-        true
-        (catch Exception e
-          (not (.contains
-            (str e)
-            (str "java.lang.IllegalArgumentException: No method in multimethod "
-                 "'emit-special' for dispatch value: [" impl " " s "]")))))))
-    special-forms))
+(defn- emit-special-implemented? [impl special-function]
+  "Predicate for successfully dispatched special functions."
+  (try
+    (with-script-language impl
+      (emit-special special-function)
+      true
+      (catch IllegalArgumentException e
+        (not
+         (.contains
+          (str e)
+          (str
+           "No method in multimethod 'emit-special' for dispatch value: ["
+           impl " " special-function "]"))))
+      (catch Exception e true))))
 
+(defn emit-special-implemented [impl]
+  "Returns a vector of successfully dispatched special functions.
+   Example usage:
+       (emit-special-implemented :pallet.stevedore.bash/bash)"
+  (filter #(emit-special-implemented? impl %) special-forms))
 
+(defn emit-special-not-implemented [impl]
+  "Returns a vector of special-functions that fail to dispatch.
+       (emit-special-not-implemented :pallet.stevedore.bash/bash)"
+  (remove #(emit-special-implemented? impl %) special-forms))
 
-;; Common implementation
+;;; Common implementation
+
 (defmethod emit-special [::common-impl 'invoke]
   [type [name & args]]
   (logging/tracef "INVOKE %s %s" name args)
