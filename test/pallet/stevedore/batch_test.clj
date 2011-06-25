@@ -50,7 +50,7 @@
     (fact "assign simple strings"
       (script (set! foo "1")) => "set foo=1"
       (script (set! foo "1 + 1")) => "set foo=1 + 1"
-      (script (set! foo-bar "1")) => (throws clojure.contrib.condition.Condition))))
+      (script (set! foo-bar "1")) => (throws slingshot.Stone))))
 
 (deftest test-str
   (with-script-language :pallet.stevedore.batch/batch

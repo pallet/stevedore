@@ -2,7 +2,7 @@
   (:require
     [pallet.common.resource :as resource]
     [pallet.common.string :as common-string]
-    [clojure.contrib.condition :as condition]
+    [slingshot.core :as slingshot]
     [clojure.string :as string])
   (:use
     [pallet.stevedore.common]
@@ -150,9 +150,9 @@
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (condition/raise
-     :type :invalid-bash-symbol
-     :message (format "Invalid bash symbol %s" var-name)))
+    (slingshot/throw+
+     {:type :invalid-bash-symbol
+      :message (format "Invalid bash symbol %s" var-name)}))
   var-name)
 
 (defn- munge-symbol [var-name]

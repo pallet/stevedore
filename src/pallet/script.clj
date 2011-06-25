@@ -22,7 +22,7 @@
    [pallet.common.deprecate :as deprecate]
    [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
-   [clojure.contrib.condition :as condition]
+   [slingshot.core :as slingshot]
    [clojure.tools.logging :as logging]))
 
 (def
@@ -120,14 +120,14 @@
      (logging/tracef "dispatch-target %s %s" script (print-args args))
      (if-let [f (or (best-match @(:methods script)))]
        (apply f args)
-       (condition/raise
-        :type :no-script-implementation
-        :template *script-context*
-        :file file
-        :line line
-        :message (format
-                  "No implementation for %s with template %s"
-                  (:fn-name script) (pr-str *script-context*))))))
+       (slingshot/throw+
+        {:type :no-script-implementation
+         :template *script-context*
+         :file file
+         :line line
+         :message (format
+                   "No implementation for %s with template %s"
+                   (:fn-name script) (pr-str *script-context*))}))))
 
 (defn invoke
   "Invoke `script` with the given `args`.  The implementations of `script` is

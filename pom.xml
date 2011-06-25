@@ -95,11 +95,12 @@
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
-      <artifactId>clojure-contrib</artifactId>
+      <artifactId>tools.logging</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.logging</artifactId>
+      <groupId>slingshot</groupId>
+      <artifactId>slingshot</artifactId>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.cloudhoist</groupId>

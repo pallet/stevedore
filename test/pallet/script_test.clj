@@ -2,7 +2,9 @@
   (:use
    [pallet.stevedore :only [with-script-language]]
    pallet.script
-   clojure.test))
+   clojure.test)
+  (:require
+   [slingshot.core :as slingshot]))
 
 
 (deftest matches?-test
@@ -26,17 +28,13 @@
     (let [f (script-fn [a b])]
       (is (= :anonymous (:fn-name f)))
       (with-script-context [:a]
-        (is (thrown?
-             clojure.contrib.condition.Condition
-             (dispatch f [1 1])))
+        (is (thrown? slingshot.Stone (dispatch f [1 1])))
         (implement f :default (fn [a b] b))
         (is (= 2 (dispatch f [1 2]))))))
   (testing "varargs"
     (let [f (script-fn [a b & c])]
       (with-script-context [:a]
-        (is (thrown?
-             clojure.contrib.condition.Condition
-             (dispatch f [1 1 2 3])))
+        (is (thrown? slingshot.Stone (dispatch f [1 1 2 3])))
         (implement f :default (fn [a b & c] c))
         (is (= [2 3] (dispatch f [1 1 2 3]))))))
   (testing "named"
@@ -79,7 +77,7 @@
           (pallet.stevedore/with-script-fn-dispatch
             script-fn-dispatch
             (with-script-context [:ubuntu]
-              (is (thrown? clojure.contrib.condition.Condition
+              (is (thrown? slingshot.Stone
                            (pallet.stevedore/script (~x 2))))))))
       (testing "with an implementation"
         (defimpl x :default [a] (str "x" ~a 1))
