@@ -23,9 +23,7 @@
    [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
    [clojure.contrib.condition :as condition]
-   [clojure.tools.logging :as logging])
-  (:use
-   [clojure.contrib.core :only [-?>]]))
+   [clojure.tools.logging :as logging]))
 
 (def
   ^{:doc
