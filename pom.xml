@@ -5,7 +5,7 @@
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-pom</artifactId>
     <version>0.4.4-SNAPSHOT</version>
-    <relativePath>../pallet-pom</relativePath>
+    <relativePath>../pallet-pom/pom.xml</relativePath>
   </parent>
   <groupId>org.cloudhoist</groupId>
   <artifactId>stevedore</artifactId>
