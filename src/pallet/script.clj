@@ -23,7 +23,7 @@
    [pallet.stevedore :as stevedore]
    [clojure.contrib.def :as def]
    [clojure.contrib.condition :as condition]
-   [clojure.contrib.logging :as logging])
+   [clojure.tools.logging :as logging])
   (:use
    [clojure.contrib.core :only [-?>]]))
 
@@ -101,10 +101,9 @@
   "Determine the best matching implementation of `script` for the current
    `*script-context*`"
   [methods]
-  (logging/trace
-   (format
-    "Found implementations %s - template %s"
-    (keys methods) (seq *script-context*)))
+  (logging/tracef
+   "Found implementations %s - template %s"
+   (keys methods) (seq *script-context*))
   (second
    (reduce
     better-match? [:default (methods :default)] (dissoc methods :default))))
@@ -118,7 +117,7 @@
      (dispatch script args nil nil))
   ([script args file line]
      {:pre [(:methods script)]}
-     (logging/trace (str "dispatch-target " script " " (print-args args)))
+     (logging/tracef "dispatch-target %s %s" script (print-args args))
      (if-let [f (or (best-match @(:methods script)))]
        (apply f args)
        (condition/raise
@@ -138,16 +137,14 @@
      (invoke script args nil nil))
   ([script args file line]
      {:pre [(::script-fn script)]}
-     (logging/trace
-      (format
-       "invoke-target [%s:%s] %s %s"
-       file line (or (:kw script) (::script-kw script))
-       (print-args args)))
+     (logging/tracef
+      "invoke-target [%s:%s] %s %s"
+      file line (or (:kw script) (::script-kw script))
+      (print-args args))
      (when-let [f (best-match @(:methods script))]
-       (logging/trace
-        (format
-         "Found implementation for %s - %s invoking with %s empty? %s"
-         (:fn-name script) f (print-args args) (empty? args)))
+       (logging/tracef
+        "Found implementation for %s - %s invoking with %s empty? %s"
+        (:fn-name script) f (print-args args) (empty? args))
        (apply f args))))
 
 (defn script-fn*

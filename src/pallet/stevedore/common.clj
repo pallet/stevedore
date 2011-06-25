@@ -3,7 +3,7 @@
     [pallet.stevedore :as stevedore]
     [clojure.string :as string]
     [clojure.contrib.seq :as c.seq]
-    [clojure.contrib.logging :as logging])
+    [clojure.tools.logging :as logging])
   (:use
     [pallet.stevedore
      :only [emit *script-language*
@@ -122,7 +122,7 @@
 ;; Common implementation
 (defmethod emit-special [::common-impl 'invoke]
   [type [name & args]]
-  (logging/trace (str "INVOKE " name " " args))
+  (logging/tracef "INVOKE %s %s" name args)
   (if (map? name)
     (try
       (stevedore/*script-fn-dispatch*
