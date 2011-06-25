@@ -12,7 +12,7 @@
   (:use
     [pallet.common.string :only [underscore]]))
 
-(declare *script-language*)
+(declare ^{:dynamic true} *script-language*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; SCRIPT GENERATION PUBLIC INTERFACE
@@ -339,7 +339,7 @@
   [name args ns file line]
   nil)
 
-(def ^{:doc "Script function dispatch."}
+(def ^{:doc "Script function dispatch." :dynamic true}
   *script-fn-dispatch* script-fn-dispatch-none)
 
 (defn script-fn-dispatch!
