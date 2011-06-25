@@ -20,19 +20,21 @@
    functions, with ties decided by the earliest defined implementation."
   (:require
    [pallet.common.deprecate :as deprecate]
+   [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
-   [clojure.contrib.def :as def]
    [clojure.contrib.condition :as condition]
    [clojure.tools.logging :as logging])
   (:use
    [clojure.contrib.core :only [-?>]]))
 
-
-(def/defunbound *script-context*
-  "Determine the target to generate script for.
+(def
+  ^{:doc
+    "Determine the target to generate script for.
    `defscript` implementations are dispatched on this.  The value should
    be a vector, containing os-family values (e.g. `:ubuntu`), os-family and
-   os-version values (e.g. `:centos-5.3`), or other keywords.")
+   os-version values (e.g. `:centos-5.3`), or other keywords."
+    :dynamic true}
+  *script-context*)
 
 (defmacro with-script-context
   "Specify the target for script generation. `template` should be a vector of

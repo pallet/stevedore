@@ -7,7 +7,6 @@
    The result of a `script` form is a string."
   (:require
     [pallet.common.deprecate :as deprecate]
-    [clojure.contrib.def :as def]
     [clojure.string :as string]
     [clojure.walk :as walk])
   (:use
@@ -168,17 +167,18 @@
 
 ;;; Helper vars and functions for parsing the stevedore DSL.
 
-(def/defunbound *script-language*
-  "Current stevedore implementation")
+(def ^{:doc "Current stevedore implementation" :dynamic true}
+  *script-language*)
 
-(def/defunbound *script-ns*
-  "Used to capture the namespace in which `script` is invoked.")
+(def ^{:doc "Used to capture the namespace in which `script` is invoked."
+       :dynamic true}
+  *script-ns*)
 
-(def/defunbound *script-line*
-  "Used to capture a form's line number.")
+(def ^{:doc "Used to capture a form's line number." :dynamic true}
+  *script-line*)
 
-(def/defunbound *script-file*
-  "Used to capture a form's file name.")
+(def ^{:doc "Used to capture a form's file name." :dynamic true}
+  *script-file*)
 
 (defmacro with-line-number
   "Provide the source file and line number for use in reporting."
