@@ -3,76 +3,67 @@
    [pallet.common.string :only [quoted]]
    pallet.stevedore
    pallet.stevedore.batch
-   midje.sweet
-   clojure.test))
+   clojure.test)
+  (:require
+   [pallet.stevedore.common :as common]))
 
-(deftest implementation-coverage-test
-  (future-fact "complete `emit-special` coverage"
-    (let [unimplemented (second (emit-special-coverage :pallet.stevedore.batch/batch))]
-      unimplemented => empty?)))
+(defn with-batch
+  [f]
+  (with-script-language :pallet.stevedore.batch/batch
+    (f)))
+
+(use-fixtures :once with-batch)
+
+;; (deftest implementation-coverage-test
+;;   (testing "complete `emit-special` coverage"
+;;     (is (empty? (common/emit-special-not-implemented
+;;                  :pallet.stevedore.batch/batch)))))
 
 (deftest number-literal
-  (with-script-language :pallet.stevedore.batch/batch
-    (facts
-      (script 42) => "42"
-      (script 1/2) => "0.5")))
+  (is (= (script 42) "42"))
+  (is (= (script 1/2) "0.5")))
 
 (deftest test-string
-  (with-script-language :pallet.stevedore.batch/batch
-    (facts
-      (script "42") => "42"
-      (script "1/2") => "1/2")))
+  (is (= (script "42") "42"))
+  (is (= (script "1/2") "1/2")))
 
 (deftest simple-call-test
-  (with-script-language :pallet.stevedore.batch/batch
-    (facts
-      (script (a b c)) => "call:a b c"
-      (script (a b)) => "call:a b"
-      (script (a)) => "call:a")))
+  (is (= (script (a b c)) "call:a b c"))
+  (is (= (script (a b)) "call:a b"))
+  (is (= (script (a)) "call:a")))
 
 (deftest test-arithmetic
-  (with-script-language :pallet.stevedore.batch/batch
-    (facts
-      (script (* x y)) => "(x * y)"
-      (script (* 1 2)) => "(1 * 2)")))
+  (is (= (script (* x y)) "(x * y)"))
+  (is (= (script (* 1 2)) "(1 * 2)")))
 
-(deftest test-return
-  (with-script-language :pallet.stevedore.batch/batch
-    (future-fact "handle return values from functions"
-      ;; http://www.dostips.com/DtTutoFunctions.php
-      (script (return 42)) => "return 42")))
+;; (deftest test-return
+;;   (testing "handle return values from functions"
+;;     ;; http://www.dostips.com/DtTutoFunctions.php
+;;     (is (= (script (return 42)) "return 42"))))
 
 (deftest test-set!
-  (with-script-language :pallet.stevedore.batch/batch
-    (future-fact "handle arithmatic in set!"
-      (script (set! foo (+ 1 1))) => "set /a foo=(1+1)"
-      (script (set! foo 1)) => "set /a foo=1")
-    (fact "assign simple strings"
-      (script (set! foo "1")) => "set foo=1"
-      (script (set! foo "1 + 1")) => "set foo=1 + 1"
-      (script (set! foo-bar "1")) => (throws slingshot.Stone))))
+  ;; (testing "handle arithmatic in set!"
+  ;;   (is (= (script (set! foo (+ 1 1))) "set /a foo=(1+1)"))
+  ;;   (is (= (script (set! foo 1)) "set /a foo=1")))
+  (testing "assign simple strings"
+    (is (= (script (set! foo "1")) "set foo=1"))
+    (is (= (script (set! foo "1 + 1")) "set foo=1 + 1"))
+    (is (thrown? slingshot.Stone (script (set! foo-bar "1"))))))
 
 (deftest test-str
-  (with-script-language :pallet.stevedore.batch/batch
-    (fact (script (str foo bar)) => "foobar")))
+  (is (= (script (str foo bar)) "foobar")))
 
 (deftest println-test
-  (with-script-language :pallet.stevedore.batch/batch
-    (fact
-      (script (println "hello")) => "echo hello"
-      (script (println "hello there")) => "echo hello there")))
+  (is (= (script (println "hello")) "echo hello"))
+  (is (= (script (println "hello there")) "echo hello there")))
 
 (deftest deref-test
-  (with-script-language :pallet.stevedore.batch/batch
-    (fact
-      (script @TMPDIR) => "%TMPDIR%")
-    (future-fact "support default value for defrefencing"
-      (script @TMPDIR-/tmp) => "%TMPDIR%-/tmp")
-    (future-fact "support equivilant of `ls`"
-      (script @(ls)) "$(ls)")))
+  (is (= (script @TMPDIR) "%TMPDIR%"))
+  ;; (testing "support default value for defrefencing"
+  ;;   (is (= (script @TMPDIR-/tmp) "%TMPDIR%-/tmp")))
+  (testing "support equivilant of `ls`"
+    (is (script @(ls)) "$(ls)")))
 
 (deftest group-test
-  (with-script-language :pallet.stevedore.batch/batch
-    (facts
-      (script (group (ls))) => "(\ncall:ls\n)"
-      (script (group (ls) (ls))) => "(\ncall:ls\ncall:ls\n)")))
+  (is (= (script (group (ls))) "(\ncall:ls\n)"))
+  (is (= (script (group (ls) (ls))) "(\ncall:ls\ncall:ls\n)")))
