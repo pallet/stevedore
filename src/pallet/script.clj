@@ -20,18 +20,19 @@
    functions, with ties decided by the earliest defined implementation."
   (:require
    [pallet.common.deprecate :as deprecate]
+   [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
-   [clojure.contrib.def :as def]
-   [clojure.contrib.condition :as condition]
-   [clojure.contrib.logging :as logging])
-  (:use
-   [clojure.contrib.core :only [-?>]]))
+   [slingshot.core :as slingshot]
+   [clojure.tools.logging :as logging]))
 
-(def/defunbound *script-context*
-  "Determine the target to generate script for.
+(def
+  ^{:doc
+    "Determine the target to generate script for.
    `defscript` implementations are dispatched on this.  The value should
    be a vector, containing os-family values (e.g. `:ubuntu`), os-family and
-   os-version values (e.g. `:centos-5.3`), or other keywords.")
+   os-version values (e.g. `:centos-5.3`), or other keywords."
+    :dynamic true}
+  *script-context*)
 
 (defmacro with-script-context
   "Specify the target for script generation. `template` should be a vector of
@@ -100,10 +101,9 @@
   "Determine the best matching implementation of `script` for the current
    `*script-context*`"
   [methods]
-  (logging/trace
-   (format
-    "Found implementations %s - template %s"
-    (keys methods) (seq *script-context*)))
+  (logging/tracef
+   "Found implementations %s - template %s"
+   (keys methods) (seq *script-context*))
   (second
    (reduce
     better-match? [:default (methods :default)] (dissoc methods :default))))
@@ -117,17 +117,17 @@
      (dispatch script args nil nil))
   ([script args file line]
      {:pre [(:methods script)]}
-     (logging/trace (str "dispatch-target " script " " (print-args args)))
+     (logging/tracef "dispatch-target %s %s" script (print-args args))
      (if-let [f (or (best-match @(:methods script)))]
        (apply f args)
-       (condition/raise
-        :type :no-script-implementation
-        :template *script-context*
-        :file file
-        :line line
-        :message (format
-                  "No implementation for %s with template %s"
-                  (:fn-name script) (pr-str *script-context*))))))
+       (slingshot/throw+
+        {:type :no-script-implementation
+         :template *script-context*
+         :file file
+         :line line
+         :message (format
+                   "No implementation for %s with template %s"
+                   (:fn-name script) (pr-str *script-context*))}))))
 
 (defn invoke
   "Invoke `script` with the given `args`.  The implementations of `script` is
@@ -137,16 +137,14 @@
      (invoke script args nil nil))
   ([script args file line]
      {:pre [(::script-fn script)]}
-     (logging/trace
-      (format
-       "invoke-target [%s:%s] %s %s"
-       file line (or (:kw script) (::script-kw script))
-       (print-args args)))
+     (logging/tracef
+      "invoke-target [%s:%s] %s %s"
+      file line (or (:kw script) (::script-kw script))
+      (print-args args))
      (when-let [f (best-match @(:methods script))]
-       (logging/trace
-        (format
-         "Found implementation for %s - %s invoking with %s empty? %s"
-         (:fn-name script) f (print-args args) (empty? args)))
+       (logging/tracef
+        "Found implementation for %s - %s invoking with %s empty? %s"
+        (:fn-name script) f (print-args args) (empty? args))
        (apply f args))))
 
 (defn script-fn*
