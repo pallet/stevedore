@@ -76,8 +76,9 @@
     (str (when (string? doc?)
            (str (shflags-doc-string doc?)))
          (when (seq flags)
-           (str (apply str (map (partial apply shflags-declare) flags))))
-         (shflags-setup)
+           (str
+            (apply str (map (partial apply shflags-declare) flags))
+            (shflags-setup)))
          (when (seq args)
            (str
              (string/join

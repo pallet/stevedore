@@ -38,7 +38,7 @@
                                   (~declare-arguments
                                      [[:string asdf a "asdf" "e"]]))))
         "Only flags")
-    (is (=  "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\na=$1\nb=$2\nc=$3\n"
+    (is (=  "a=$1\nb=$2\nc=$3\n"
            (with-script-context [:default]
                                 (stevedore/script
                                   (~declare-arguments
@@ -51,7 +51,7 @@
                                      [a b c
                                       [:string asdf a "asdf" "e"]]))))
         "Without docstring")
-    (is (= "FLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\n"
+    (is (= ""
            (with-script-context [:default]
                                 (stevedore/script
                                   (~declare-arguments
