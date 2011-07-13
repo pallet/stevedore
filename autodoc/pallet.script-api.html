@@ -67,7 +67,13 @@ namespace.
       <a href="#pallet.script/script-fn-dispatch">script-fn-dispatch</a>
     </div><div style="margin-left: 1em;" class="toc-entry">
       <a href="#pallet.script/with-script-context">with-script-context</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#pallet.script/with-template">with-template</a>
     </div>
+    <br />
+  </div><div style="margin-left: 1em;" class="toc-section">
+    <a href="#pallet.script.lib">pallet.script.lib</a>
+    
     <br />
   </div>
 </div>
@@ -227,7 +233,22 @@ dispatched based on the `*script-context*` vector.</pre>
   <pre id="var-docstr">Specify the target for script generation. `template` should be a vector of
 os-family, os-family and os-version, or other keywords. </pre>
   
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="pallet.script/with-template">with-template</h2>
+  <span id="var-type">macro</span><br />
+  <pre id="var-usage">Usage: (with-template template &amp; body)
+</pre>
+  <pre id="var-docstr">Specify the target for script generation. `template` should be a vector of
+os-family, os-family and os-version, or other keywords.
+DEPRECATED - see `with-script-context`</pre>
+  
 </div>
+<h2 id="namespace-name">pallet.script.lib</h2>
+<pre id="namespace-docstr">Script library for abstracting target host script differences</pre>
+<br />
+
 
 
 </div>
