@@ -99,10 +99,17 @@
   [expr]
   (contains? quoted-operators expr))
 
-(defn- logical-test? [test]
+(defn- logical-test?
+  "Check whether a condition should be wrapped in []"
+  [test]
+  ;; this is hairy
   (and (sequential? test)
        (or (infix-operator? (first test))
-           (and (= 'not (first test)) (logical-test? (fnext test)))
+           (and (= 'not (first test))
+                (let [test2 (fnext test)]
+                  (or (logical-test? test2)
+                      (and (string? test2)
+                           (re-find #"^-|\\\(" test2)))))
            (and (not= 'not (first test)) (logical-operator? (first test))))))
 
 ;;; Emit special forms

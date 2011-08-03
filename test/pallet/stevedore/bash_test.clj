@@ -171,6 +171,12 @@
            (script (if (file-exists? "file1") (println "foo")))))
     (is (= "if [ ! -e file1 ]; then echo foo;fi"
            (script (if (not (file-exists? "file1")) (println "foo")))))
+    (is (= "if [ ! -e file1 ]; then echo foo;fi"
+           (let [condition (script (file-exists? "file1"))]
+             (script (if (not ~condition) (println "foo"))))))
+    (is (= "if [ ! \\( \\( \"a\" == \"1\" \\) -a \"file1\" \\) ]; then echo foo;fi"
+           (let [condition (script (and (= a 1) "file1"))]
+             (script (if (not ~condition) (println "foo"))))))
     (is (= "if ! grep aa file1; then echo foo;fi"
            (script (if (not (grep "aa" "file1")) (println "foo")))))
     (is (= "if [ \\( ! -e file1 -o \\( \"a\" == \"b\" \\) \\) ]; then echo foo;fi"
