@@ -171,6 +171,8 @@
            (script (if (file-exists? "file1") (println "foo")))))
     (is (= "if [ ! -e file1 ]; then echo foo;fi"
            (script (if (not (file-exists? "file1")) (println "foo")))))
+    (is (= "if ! grep aa file1; then echo foo;fi"
+           (script (if (not (grep "aa" "file1")) (println "foo")))))
     (is (= "if [ \\( ! -e file1 -o \\( \"a\" == \"b\" \\) \\) ]; then echo foo;fi"
            (script (if (|| (not (file-exists? "file1")) (== "a" "b"))
                      (println "foo")))))

@@ -102,7 +102,8 @@
 (defn- logical-test? [test]
   (and (sequential? test)
        (or (infix-operator? (first test))
-           (logical-operator? (first test)))))
+           (and (= 'not (first test)) (logical-test? (fnext test)))
+           (and (not= 'not (first test)) (logical-operator? (first test))))))
 
 ;;; Emit special forms
 (defn- emit-quoted-if-not-subexpr [f expr]
