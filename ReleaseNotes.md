@@ -1,6 +1,18 @@
 # Stevedore Release Notes
 
-The latest release is 0.6.0.
+The latest release is 0.7.0.
+
+## 0.7.0
+
+- Improve logical test detection
+  Logical test detection was failing when the condition was an unquoted
+  clojure expression.
+
+- Rename pallet.script.lib to pallet.script.scriptlib
+  This was duplicating a namespace definied in pallet
+
+- Make shflags completely optional
+  Fixes #16.
 
 ## 0.6.0
 
