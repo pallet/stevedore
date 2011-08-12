@@ -76,8 +76,9 @@
     (str (when (string? doc?)
            (str (shflags-doc-string doc?)))
          (when (seq flags)
-           (str (apply str (map (partial apply shflags-declare) flags))))
-         (shflags-setup)
+           (str
+            (apply str (map (partial apply shflags-declare) flags))
+            (shflags-setup)))
          (when (seq args)
            (str
              (string/join
@@ -98,10 +99,18 @@
   [expr]
   (contains? quoted-operators expr))
 
-(defn- logical-test? [test]
+(defn- logical-test?
+  "Check whether a condition should be wrapped in []"
+  [test]
+  ;; this is hairy
   (and (sequential? test)
        (or (infix-operator? (first test))
-           (logical-operator? (first test)))))
+           (and (= 'not (first test))
+                (let [test2 (fnext test)]
+                  (or (logical-test? test2)
+                      (and (string? test2)
+                           (re-find #"^-|\\\(" test2)))))
+           (and (not= 'not (first test)) (logical-operator? (first test))))))
 
 ;;; Emit special forms
 (defn- emit-quoted-if-not-subexpr [f expr]

@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-pom</artifactId>
-    <version>0.4.4</version>
+    <version>0.4.5</version>
     <relativePath>../pallet-pom/pom.xml</relativePath>
   </parent>
   <groupId>org.cloudhoist</groupId>
   <artifactId>stevedore</artifactId>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.7.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>stevedore</name>
   <description>

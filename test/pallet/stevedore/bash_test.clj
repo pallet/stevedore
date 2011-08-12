@@ -101,7 +101,7 @@
                                      (foo a) (bar b)))))
         "anonymous")
 
-    (is (= "foo() {\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}"
+    (is (= "foo() {\nx=$1\ny=$2\nfoo a\nbar b\n}"
            (strip-ws (script (defn foo [x y]
                                (foo a) (bar b)))))
         "without flags")
@@ -171,6 +171,14 @@
            (script (if (file-exists? "file1") (println "foo")))))
     (is (= "if [ ! -e file1 ]; then echo foo;fi"
            (script (if (not (file-exists? "file1")) (println "foo")))))
+    (is (= "if [ ! -e file1 ]; then echo foo;fi"
+           (let [condition (script (file-exists? "file1"))]
+             (script (if (not ~condition) (println "foo"))))))
+    (is (= "if [ ! \\( \\( \"a\" == \"1\" \\) -a \"file1\" \\) ]; then echo foo;fi"
+           (let [condition (script (and (= a 1) "file1"))]
+             (script (if (not ~condition) (println "foo"))))))
+    (is (= "if ! grep aa file1; then echo foo;fi"
+           (script (if (not (grep "aa" "file1")) (println "foo")))))
     (is (= "if [ \\( ! -e file1 -o \\( \"a\" == \"b\" \\) \\) ]; then echo foo;fi"
            (script (if (|| (not (file-exists? "file1")) (== "a" "b"))
                      (println "foo")))))
@@ -280,7 +288,7 @@
     (let [stuff (quote (do
                          (local x 3)
                          (local y 4)))]
-      (is (= "foo() {\nFLAGS \"$@\" || exit 1\neval set -- \"${FLAGS_ARGV}\"\nx=$1\nlocal x=3\nlocal y=4\n}"
+      (is (= "foo() {\nx=$1\nlocal x=3\nlocal y=4\n}"
              (strip-ws (script (defn foo [x] ~stuff))))))))
 
 (deftest defvar-test
