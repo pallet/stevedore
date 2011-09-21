@@ -5,6 +5,8 @@ An embedding of shell script in clojure
 See [reference documentation](http://pallet.github.com/stevedore/autodoc/index.html)
 and [annotated source](http://pallet.github.com/stevedore/marginalia/uberdoc.html).
 
+See [tests](https://github.com/pallet/stevedore/tree/develop/test/pallet/stevedore) for usage examples.
+
 ## Installation
 
 stevedore is distributed as a jar, and is available in the
