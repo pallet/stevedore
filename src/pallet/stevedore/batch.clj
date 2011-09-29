@@ -43,6 +43,9 @@
 (defmethod emit [::batch java.lang.Integer] [expr]
   (str expr))
 
+(defmethod emit [::batch java.lang.Long] [expr]
+  (str expr))
+
 (defmethod emit [::batch clojure.lang.Ratio] [expr]
   (str (float expr)))
 

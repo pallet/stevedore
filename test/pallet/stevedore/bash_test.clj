@@ -232,9 +232,10 @@
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "([packages]=(columnchart))"
            (strip-ws (script {:packages ["columnchart"]}))))
-    (is (= "{ hash_set x p c; hash_set x q d; }\necho ${x[p]}"
+    (is (#{"{ hash_set x p c; hash_set x q d; }\necho ${x[p]}"
+           "{ hash_set x q d; hash_set x p c; }\necho ${x[p]}"}
            (strip-ws (script (do (var x {:p "c" :q "d"})
-                               (println (aget x :p)))))))
+                                 (println (aget x :p)))))))
     (is (= "c\nd\n"
            (bash-out (script
                        ~pallet.stevedore.bash/hashlib

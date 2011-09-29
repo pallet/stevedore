@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-pom</artifactId>
-    <version>0.4.5</version>
+    <version>0.7.0-SNAPSHOT</version>
     <relativePath>../pallet-pom/pom.xml</relativePath>
   </parent>
   <groupId>org.cloudhoist</groupId>
@@ -26,10 +26,8 @@
 
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
     <resources>
-      <resource>
-        <directory>src</directory>
-      </resource>
       <resource>
         <directory>resources</directory>
         <excludes>
@@ -42,9 +40,6 @@
       </resource>
     </resources>
     <testResources>
-      <testResource>
-        <directory>test</directory>
-      </testResource>
       <testResource>
         <directory>test-resources</directory>
       </testResource>
@@ -62,28 +57,12 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>clojure-maven-plugin</artifactId>
+        <groupId>org.cloudhoist.plugin</groupId>
+        <artifactId>zi</artifactId>
         <configuration>
           <autodocTargetDirectory>doc/autodoc</autodocTargetDirectory>
           <marginaliaTargetDirectory>doc/marginalia</marginaliaTargetDirectory>
         </configuration>
-        <executions>
-          <execution>
-            <id>compile-clojure</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>test-clojure</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
@@ -101,45 +80,41 @@
     <dependency>
       <groupId>slingshot</groupId>
       <artifactId>slingshot</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet-common</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
       <optional>true</optional>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>0.9.94</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
       <optional>true</optional>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>swank-clojure</groupId>
-      <artifactId>swank-clojure</artifactId>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
       <optional>true</optional>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>vimclojure</groupId>
-      <artifactId>server</artifactId>
-      <version>2.2.0</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>autodoc</groupId>
-      <artifactId>autodoc</artifactId>
-      <optional>true</optional>
-    </dependency>
+    <!-- <dependency> -->
+    <!--   <groupId>autodoc</groupId> -->
+    <!--   <artifactId>autodoc</artifactId> -->
+    <!--   <optional>true</optional> -->
+    <!-- </dependency> -->
     <dependency>
       <groupId>marginalia</groupId>
       <artifactId>marginalia</artifactId>
       <optional>true</optional>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -162,7 +137,7 @@
     <profile>
       <id>clojure-1.3</id>
       <properties>
-        <clojure.version>1.3.0-beta1</clojure.version>
+        <clojure.version>1.3.0</clojure.version>
       </properties>
     </profile>
   </profiles>
@@ -192,7 +167,4 @@
     </repository>
   </repositories>
 
-  <properties>
-    <clojure.version>1.2.0</clojure.version>
-  </properties>
 </project>

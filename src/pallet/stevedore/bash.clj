@@ -230,6 +230,9 @@
 (defmethod emit [::bash java.lang.Integer] [expr]
   (str expr))
 
+(defmethod emit [::bash java.lang.Long] [expr]
+  (str expr))
+
 (defmethod emit [::bash clojure.lang.Ratio] [expr]
   (str (float expr)))
 
