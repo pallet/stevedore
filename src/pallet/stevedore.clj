@@ -235,13 +235,13 @@
   (second form))
 
 (declare emit)
-(defn- splice [form]
+(defn splice [form]
   (if (seq form)
     (string/join " " (map emit form))
     empty-splice))
 
 (defn- handle-unquote-splicing [form]
-  (list splice (second form)))
+  (list `splice (second form)))
 
 
 ;; These functions are used for an initial scan over stevedore forms
