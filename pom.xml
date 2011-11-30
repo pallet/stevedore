@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-pom</artifactId>
-    <version>0.7.0-SNAPSHOT</version>
+    <version>0.7.0</version>
     <relativePath>../pallet-pom/pom.xml</relativePath>
   </parent>
   <groupId>org.cloudhoist</groupId>
@@ -85,7 +85,7 @@
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet-common</artifactId>
-      <version>0.2.1-SNAPSHOT</version>
+      <version>0.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -164,6 +164,14 @@
       <id>sonatype-nexus-releases</id>
       <name>Sonatype Nexus Releases</name>
       <url>http://oss.sonatype.org/content/repositories/releases</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
   </repositories>
 
