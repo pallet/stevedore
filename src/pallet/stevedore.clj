@@ -183,10 +183,9 @@
 (defmacro with-line-number
   "Provide the source file and line number for use in reporting."
   [[file line] & body]
-  `(do
-     (binding [*script-line* ~line
-               *script-file* ~file]
-       ~@body)))
+  `(binding [*script-line* ~line
+            *script-file* ~file]
+    ~@body))
 
 
 ;; Preprocessing functions
