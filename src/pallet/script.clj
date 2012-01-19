@@ -22,8 +22,9 @@
    [pallet.common.deprecate :as deprecate]
    [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
-   [slingshot.core :as slingshot]
-   [clojure.tools.logging :as logging]))
+   [clojure.tools.logging :as logging])
+  (:use
+   [slingshot.slingshot :only [throw+]]))
 
 (def
   ^{:doc
@@ -36,7 +37,8 @@
 
 (defmacro with-script-context
   "Specify the target for script generation. `template` should be a vector of
-   os-family, os-family and os-version, or other keywords. "
+   os-family, os-family and os-version, or other keywords."
+  {:indent 1}
   [template & body]
   `(binding [*script-context* (filter identity ~template)]
      ~@body))
@@ -120,7 +122,7 @@
      (logging/tracef "dispatch-target %s %s" script (print-args args))
      (if-let [f (or (best-match @(:methods script)))]
        (apply f args)
-       (slingshot/throw+
+       (throw+
         {:type :no-script-implementation
          :template *script-context*
          :file file

@@ -48,7 +48,7 @@
   (testing "assign simple strings"
     (is (= (script (set! foo "1")) "set foo=1"))
     (is (= (script (set! foo "1 + 1")) "set foo=1 + 1"))
-    (is (thrown? slingshot.Stone (script (set! foo-bar "1"))))))
+    (is (thrown? slingshot.ExceptionInfo (script (set! foo-bar "1"))))))
 
 (deftest test-str
   (is (= (script (str foo bar)) "foobar")))

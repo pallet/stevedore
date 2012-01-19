@@ -2,13 +2,13 @@
   (:require
     [pallet.common.resource :as resource]
     [pallet.common.string :as common-string]
-    [slingshot.core :as slingshot]
     [clojure.string :as string])
   (:use
-    [pallet.stevedore.common]
-    [pallet.stevedore
-     :only [emit emit-do *script-fn-dispatch* empty-splice]]
-    [pallet.common.string :only [quoted substring underscore]]))
+   [pallet.stevedore.common]
+   [pallet.stevedore
+    :only [emit emit-do *script-fn-dispatch* empty-splice]]
+   [pallet.common.string :only [quoted substring underscore]]
+   [slingshot.slingshot :only [throw+]]))
 
 
 (derive ::bash :pallet.stevedore.common/common-impl)
@@ -159,7 +159,7 @@
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (slingshot/throw+
+    (throw+
      {:type :invalid-bash-symbol
       :message (format "Invalid bash symbol %s" var-name)}))
   var-name)

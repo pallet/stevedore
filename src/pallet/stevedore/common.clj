@@ -126,23 +126,25 @@
 ;;; Common implementation
 
 (defmethod emit-special [::common-impl 'invoke]
-  [type [name & args]]
-  (logging/tracef "INVOKE %s %s" name args)
-  (if (map? name)
+  [type [fn-name-or-map & args]]
+  (logging/tracef "INVOKE %s %s" fn-name-or-map args)
+  (if (map? fn-name-or-map)
     (try
       (stevedore/*script-fn-dispatch*
-       name (filter-empty-splice args)
+       fn-name-or-map (filter-empty-splice args)
        stevedore/*script-ns* stevedore/*script-file* stevedore/*script-line*)
       (catch java.lang.IllegalArgumentException e
-        (throw (java.lang.IllegalArgumentException.
-                (str "Invalid arguments for " name) e))))
+        (throw
+         (java.lang.IllegalArgumentException.
+          (str "Invalid arguments for script function "
+               (name (:fn-name fn-name-or-map))) e))))
     (let [argseq (->>
                     args
                     filter-empty-splice
                     (map emit)
                     (filter (complement string/blank?))
                     (interpose " "))]
-      (apply emit-function-call name argseq))))
+      (apply emit-function-call fn-name-or-map argseq))))
 
 (defn- emit-s-expr [expr]
   (if (symbol? (first expr))

@@ -1,11 +1,11 @@
 (ns pallet.stevedore.batch
   (:require
-    [slingshot.core :as slingshot]
     [clojure.string :as string])
   (:use
     [pallet.stevedore.common]
     [pallet.stevedore
-     :only [emit emit-do]]))
+     :only [emit emit-do]]
+    [slingshot.slingshot :only [throw+]]))
 
 (derive ::batch :pallet.stevedore.common/common-impl)
 
@@ -67,7 +67,7 @@
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (slingshot/throw+
+    (throw+
      {:type :invalid-bash-symbol
       :message (format "Invalid batch symbol %s" var-name)}))
   var-name)
