@@ -3,7 +3,7 @@
    [pallet.common.string :only [quoted]]
    pallet.stevedore
    clojure.test
-   pallet.slingshot-test-util)
+   pallet.common.slingshot-test-util)
   (:require
    [pallet.script :as script]
    [pallet.stevedore.common]

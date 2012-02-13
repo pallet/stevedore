@@ -1,6 +1,16 @@
 # Stevedore Release Notes
 
-The latest release is 0.7.0.
+The latest release is 0.7.1.
+
+## 0.7.1
+
+- Make stevedore slingshot version agnostic
+
+- Fix an issue with splice
+  The unquote splicing form was being transformed into a form with a
+  function literal rather than a symbol
+
+- Update for clojure-1.3.0 compatability
 
 ## 0.7.0
 
