@@ -1,11 +1,14 @@
 (ns pallet.stevedore.batch
   (:require
-    [slingshot.core :as slingshot]
     [clojure.string :as string])
   (:use
     [pallet.stevedore.common]
-    [pallet.stevedore
-     :only [emit emit-do]]))
+    [pallet.stevedore :only [emit emit-do]]))
+
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (derive ::batch :pallet.stevedore.common/common-impl)
 
@@ -43,6 +46,9 @@
 (defmethod emit [::batch java.lang.Integer] [expr]
   (str expr))
 
+(defmethod emit [::batch java.lang.Long] [expr]
+  (str expr))
+
 (defmethod emit [::batch clojure.lang.Ratio] [expr]
   (str (float expr)))
 
@@ -64,7 +70,7 @@
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (slingshot/throw+
+    (throw+
      {:type :invalid-bash-symbol
       :message (format "Invalid batch symbol %s" var-name)}))
   var-name)

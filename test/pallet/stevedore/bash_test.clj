@@ -2,7 +2,8 @@
   (:use
    [pallet.common.string :only [quoted]]
    pallet.stevedore
-   clojure.test)
+   clojure.test
+   pallet.common.slingshot-test-util)
   (:require
    [pallet.script :as script]
    [pallet.stevedore.common]
@@ -10,7 +11,6 @@
    [pallet.common.filesystem :as filesystem]
    [pallet.common.logging.logutils :as logutils]
    [pallet.common.shell :as shell]
-   [slingshot.core :as slingshot]
    [clojure.tools.logging :as logging]))
 
 (defmacro bash-out
@@ -138,12 +138,12 @@
 (deftest test-set!
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (set! foo 1))))
-    (is (thrown? slingshot.Stone (script (set! foo-bar 1))))))
+    (is-thrown-slingshot? (script (set! foo-bar 1)))))
 
 (deftest var-test
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (var foo 1))))
-    (is (thrown? slingshot.Stone (script (var foo-bar 1))))))
+    (is-thrown-slingshot? (script (var foo-bar 1)))))
 
 (deftest alias-test
   (with-script-language :pallet.stevedore.bash/bash
@@ -232,9 +232,10 @@
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "([packages]=(columnchart))"
            (strip-ws (script {:packages ["columnchart"]}))))
-    (is (= "{ hash_set x p c; hash_set x q d; }\necho ${x[p]}"
+    (is (#{"{ hash_set x p c; hash_set x q d; }\necho ${x[p]}"
+           "{ hash_set x q d; hash_set x p c; }\necho ${x[p]}"}
            (strip-ws (script (do (var x {:p "c" :q "d"})
-                               (println (aget x :p)))))))
+                                 (println (aget x :p)))))))
     (is (= "c\nd\n"
            (bash-out (script
                        ~pallet.stevedore.bash/hashlib

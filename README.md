@@ -5,6 +5,8 @@ An embedding of shell script in clojure
 See [reference documentation](http://pallet.github.com/stevedore/autodoc/index.html)
 and [annotated source](http://pallet.github.com/stevedore/marginalia/uberdoc.html).
 
+See [tests](https://github.com/pallet/stevedore/tree/develop/test/pallet/stevedore) for usage examples.
+
 ## Installation
 
 stevedore is distributed as a jar, and is available in the
@@ -14,7 +16,7 @@ Installation is with maven or your favourite maven repository aware build tool.
 
 ### lein/cake project.clj
 
-    :dependencies [[org.cloudhoist/stevedore "0.7.0"]]
+    :dependencies [[org.cloudhoist/stevedore "0.7.1"]]
     :repositories {"sonatype"
                    "http://oss.sonatype.org/content/repositories/releases"}
 
@@ -24,7 +26,7 @@ Installation is with maven or your favourite maven repository aware build tool.
       <dependency>
         <groupId>org.cloudhoist</groupId>
         <artifactId>stevedore</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
       </dependency>
     <dependencies>
 
@@ -39,4 +41,4 @@ Installation is with maven or your favourite maven repository aware build tool.
 
 Licensed under [EPL](http://www.eclipse.org/legal/epl-v10.html)
 
-Copyright 2010, 2011 Hugo Duncan.
+Copyright 2010, 2011, 2012 Hugo Duncan.

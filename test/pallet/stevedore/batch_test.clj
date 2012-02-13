@@ -3,7 +3,8 @@
    [pallet.common.string :only [quoted]]
    pallet.stevedore
    pallet.stevedore.batch
-   clojure.test)
+   clojure.test
+   pallet.common.slingshot-test-util)
   (:require
    [pallet.stevedore.common :as common]))
 
@@ -48,7 +49,7 @@
   (testing "assign simple strings"
     (is (= (script (set! foo "1")) "set foo=1"))
     (is (= (script (set! foo "1 + 1")) "set foo=1 + 1"))
-    (is (thrown? slingshot.Stone (script (set! foo-bar "1"))))))
+    (is-thrown-slingshot? (script (set! foo-bar "1")))))
 
 (deftest test-str
   (is (= (script (str foo bar)) "foobar")))
