@@ -3,7 +3,7 @@
    [pallet.stevedore :only [with-script-language]]
    pallet.script
    clojure.test
-   pallet.slingshot-test-util))
+   pallet.common.slingshot-test-util))
 
 (deftest matches?-test
   (with-script-context [:ubuntu]

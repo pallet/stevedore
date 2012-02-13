@@ -4,7 +4,7 @@
    pallet.stevedore
    pallet.stevedore.batch
    clojure.test
-   pallet.slingshot-test-util)
+   pallet.common.slingshot-test-util)
   (:require
    [pallet.stevedore.common :as common]))
 
