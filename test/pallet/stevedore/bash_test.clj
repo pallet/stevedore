@@ -2,7 +2,8 @@
   (:use
    [pallet.common.string :only [quoted]]
    pallet.stevedore
-   clojure.test)
+   clojure.test
+   pallet.slingshot-test-util)
   (:require
    [pallet.script :as script]
    [pallet.stevedore.common]
@@ -10,9 +11,7 @@
    [pallet.common.filesystem :as filesystem]
    [pallet.common.logging.logutils :as logutils]
    [pallet.common.shell :as shell]
-   [clojure.tools.logging :as logging])
-  (:import
-   slingshot.ExceptionInfo))
+   [clojure.tools.logging :as logging]))
 
 (defmacro bash-out
   "Check output of bash. Implemented as a macro so that errors appear on the
@@ -139,12 +138,12 @@
 (deftest test-set!
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (set! foo 1))))
-    (is (thrown? slingshot.ExceptionInfo (script (set! foo-bar 1))))))
+    (is-thrown-slingshot? (script (set! foo-bar 1)))))
 
 (deftest var-test
   (with-script-language :pallet.stevedore.bash/bash
     (is (= "foo=1" (script (var foo 1))))
-    (is (thrown? slingshot.ExceptionInfo (script (var foo-bar 1))))))
+    (is-thrown-slingshot? (script (var foo-bar 1)))))
 
 (deftest alias-test
   (with-script-language :pallet.stevedore.bash/bash

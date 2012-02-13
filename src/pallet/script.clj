@@ -22,9 +22,12 @@
    [pallet.common.deprecate :as deprecate]
    [pallet.common.def :as def]
    [pallet.stevedore :as stevedore]
-   [clojure.tools.logging :as logging])
-  (:use
-   [slingshot.slingshot :only [throw+]]))
+   [clojure.tools.logging :as logging]))
+
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (def
   ^{:doc

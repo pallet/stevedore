@@ -5,11 +5,13 @@
     [clojure.string :as string])
   (:use
    [pallet.stevedore.common]
-   [pallet.stevedore
-    :only [emit emit-do *script-fn-dispatch* empty-splice]]
-   [pallet.common.string :only [quoted substring underscore]]
-   [slingshot.slingshot :only [throw+]]))
+   [pallet.stevedore :only [emit emit-do *script-fn-dispatch* empty-splice]]
+   [pallet.common.string :only [quoted substring underscore]]))
 
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (derive ::bash :pallet.stevedore.common/common-impl)
 

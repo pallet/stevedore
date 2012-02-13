@@ -3,9 +3,12 @@
     [clojure.string :as string])
   (:use
     [pallet.stevedore.common]
-    [pallet.stevedore
-     :only [emit emit-do]]
-    [slingshot.slingshot :only [throw+]]))
+    [pallet.stevedore :only [emit emit-do]]))
+
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 (derive ::batch :pallet.stevedore.common/common-impl)
 

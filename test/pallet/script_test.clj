@@ -2,10 +2,8 @@
   (:use
    [pallet.stevedore :only [with-script-language]]
    pallet.script
-   clojure.test)
-  (:import
-   slingshot.ExceptionInfo))
-
+   clojure.test
+   pallet.slingshot-test-util))
 
 (deftest matches?-test
   (with-script-context [:ubuntu]
@@ -28,13 +26,13 @@
     (let [f (script-fn [a b])]
       (is (= :anonymous (:fn-name f)))
       (with-script-context [:a]
-        (is (thrown? slingshot.ExceptionInfo (dispatch f [1 1])))
+        (is-thrown-slingshot? (dispatch f [1 1]))
         (implement f :default (fn [a b] b))
         (is (= 2 (dispatch f [1 2]))))))
   (testing "varargs"
     (let [f (script-fn [a b & c])]
       (with-script-context [:a]
-        (is (thrown? slingshot.ExceptionInfo (dispatch f [1 1 2 3])))
+        (is-thrown-slingshot? (dispatch f [1 1 2 3]))
         (implement f :default (fn [a b & c] c))
         (is (= [2 3] (dispatch f [1 1 2 3]))))))
   (testing "named"
@@ -77,8 +75,7 @@
           (pallet.stevedore/with-script-fn-dispatch
             script-fn-dispatch
             (with-script-context [:ubuntu]
-              (is (thrown? slingshot.ExceptionInfo
-                           (pallet.stevedore/script (~x 2))))))))
+              (is-thrown-slingshot? (pallet.stevedore/script (~x 2)))))))
       (testing "with an implementation"
         (defimpl x :default [a] (str "x" ~a 1))
         (testing "and mandatory dispatch"
