@@ -162,7 +162,18 @@
    expression."
   (fn [ expr ] [*script-language* (type expr)]))
 
-
+(defmethod emit :default
+  [expr]
+  (when-not (bound? #'*script-language*)
+    (throw+
+     {:expr expr}
+     "Attempting to use stevedore without specifying the target script language. Use pallet.stevedore/with-script-language to specify the target script language."))
+  (throw+
+     {:script-language *script-language*
+      :expr expr}
+     (format
+      "Script language %s doesn't know how to handle expressions of type %s (value is %s)."
+      *script-language* (type expr) expr)))
 
 
 
