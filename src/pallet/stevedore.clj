@@ -12,6 +12,11 @@
   (:use
     [pallet.common.string :only [underscore]]))
 
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
+
 (declare ^{:dynamic true} *script-language*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
