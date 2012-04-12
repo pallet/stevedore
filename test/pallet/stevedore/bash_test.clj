@@ -68,7 +68,7 @@
   (is (= "(x * y)" (script (* x y)))))
 
 (deftest test-return
-  (is (= "return 42" (strip-ws (script (return 42))))))
+  (is (= "return 42" (script (return 42)))))
 
 (deftest test-script-call
   (let [name "name1"]
@@ -144,9 +144,9 @@
   (is (= "(1 2 \"3\" foo)" (script [1 "2" "\"3\"" :foo]))))
 
 (deftest test-if
-  (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then echo fred;fi"
+  (is (= "if [ \"foo\" == \"bar\" ]; then echo fred;fi"
          (script (if (= foo bar) (println fred)))))
-  (is (= "if [ \\( \\( \"foo\" == \"bar\" \\) -a \\( \"foo\" != \"baz\" \\) \\) ]; then echo fred;fi"
+  (is (= "if [ \"foo\" == \"bar\" ] && [ \"foo\" != \"baz\" ]; then echo fred;fi"
          (script (if (&& (== foo bar) (!= foo baz)) (println fred)))))
   (is (= "fred\n"
          (bash-out (script (if (&& (== foo foo) (!= foo baz)) (println "fred"))))))
@@ -158,25 +158,30 @@
                              (do (println "not foo")))))))
   (is (= "if [ -e file1 ]; then echo foo;fi"
          (script (if (file-exists? "file1") (println "foo")))))
-  (is (= "if [ ! -e file1 ]; then echo foo;fi"
+  (is (= "if ! ( [ -e file1 ] ); then echo foo;fi"
          (script (if (not (file-exists? "file1")) (println "foo")))))
-  (is (= "if [ ! -e file1 ]; then echo foo;fi"
+  (is (= "if ! ( [ -e file1 ] ); then echo foo;fi"
          (let [condition (script (file-exists? "file1"))]
            (script (if (not ~condition) (println "foo"))))))
-  (is (= "if [ ! \\( \\( \"a\" == \"1\" \\) -a \"file1\" \\) ]; then echo foo;fi"
+  (is (= "if ! ( [ \"a\" == \"1\" ] && file1 ); then echo foo;fi" ;;; !!!!! checkme
          (let [condition (script (and (= a 1) "file1"))]
            (script (if (not ~condition) (println "foo"))))))
-  (is (= "if ! grep aa file1; then echo foo;fi"
+  (is (= "if ! ( grep aa file1 ); then echo foo;fi"
          (script (if (not (grep "aa" "file1")) (println "foo")))))
-  (is (= "if [ \\( ! -e file1 -o \\( \"a\" == \"b\" \\) \\) ]; then echo foo;fi"
+  (is (= "if ! ( [ -e file1 ] ) || [ \"a\" == \"b\" ]; then echo foo;fi"
          (script (if (|| (not (file-exists? "file1")) (== "a" "b"))
                    (println "foo")))))
   (testing "if block as string with newline is treated as compound"
     (is (= "if [ -e f ]; then\nls\nls\nfi"
-           (script (if (file-exists? "f") "ls\nls"))))))
+           (script (if (file-exists? "f") "ls\nls")))))
+  (testing "an expression"
+    (is (= "if ! ( [ -e md5 ] ) || ls file; then echo 1;fi"
+           (script (if (|| (not (file-exists? "md5"))
+                           (ls "file"))
+                     (println 1)))))))
 
 (deftest if-nested-test
-  (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then\nif [ \\( \"foo\" != \"baz\" \\) ]; then echo fred;fi\nfi"
+  (is (= "if [ \"foo\" == \"bar\" ]; then\nif [ \"foo\" != \"baz\" ]; then echo fred;fi\nfi"
          (script (if (== foo bar)
                    (if (!= foo baz)
                      (println fred))))))
@@ -185,21 +190,27 @@
                                   (println fred))))))))
 
 (deftest test-if-not
-  (is (= "if [ ! -e bar ]; then echo fred;fi"
+  (is (= "if ! ( [ -e bar ] ); then echo fred;fi"
          (script (if-not (file-exists? bar) (println fred)))))
-  (is (= "if [ ! \\( -e bar -a \\( \"foo\" == \"bar\" \\) \\) ]; then echo fred;fi"
+  (is (= "if ! ( [ -e bar ] && [ \"foo\" == \"bar\" ] ); then echo fred;fi"
          (script (if-not (&& (file-exists? bar) (== foo bar)) (println fred)))))
-  (is (= "if [ ! \\( \\( \"foo\" == \"bar\" \\) -a \\( \"foo\" == \"baz\" \\) \\) ]; then echo fred;fi"
+  (is (= "if ! ( [ \"foo\" == \"bar\" ] && [ \"foo\" == \"baz\" ] ); then echo fred;fi"
          (script (if-not (&& (== foo bar) (== foo baz)) (println fred)))))
   (is (= "fred\n"
          (bash-out (script (if-not (&& (== foo foo) (== foo baz))
                              (println "fred")))))))
 
 (deftest test-when
-  (is (= "if [ \\( \"foo\" == \"bar\" \\) ]; then\necho fred\nfi"
+  (is (= "if [ \"foo\" == \"bar\" ]; then\necho fred\nfi"
          (script (when (= foo bar) (println fred)))))
   (is (= "if foo; then\nx=3\nfoo x\nfi"
          (script (when foo (var x 3) (foo x))))))
+
+(deftest test-when-not
+  (is (= "if ! ( [ \"foo\" == \"bar\" ] ); then\necho fred\nfi"
+         (script (when-not  (= foo bar) (println fred)))))
+  (is (= "if ! ( foo ); then\nx=3\nfoo x\nfi"
+         (script (when-not foo (var x 3) (foo x))))))
 
 (deftest test-case
   (is (= "case ${X} in\n1)\nsomething;;\n\"2\")\nsomething else;;\nesac"

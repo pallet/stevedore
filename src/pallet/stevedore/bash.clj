@@ -22,12 +22,16 @@
   #{'+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '&& '||
     'and 'or})
 
+(def arithmetic-operators
+  ^{:doc "Operators that should be converted to infix in expressions."
+    :private true}
+  #{'+ '- '/ '* '%})
+
 (def logical-operators
   ^{:doc "Logical operators for test expressions."
     :private true}
-  #{'== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '&& '||
-    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
-    'not 'and 'or})
+  #{'== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '|
+    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?})
 
 (def
   ^{:doc "Operators that should quote their arguments."
@@ -39,10 +43,10 @@
   ^{:doc "Conversion from clojure operators to shell infix operators."
     :private true}
   infix-conversions
-     {'&& "-a"
-      'and "-a"
-      '|| "-o"
-      'or "-o"
+     {'&& "&&"
+      'and "&&"
+      '|| "||"
+      'or "||"
       '< "\\<"
       '> "\\>"
       '= "=="})
@@ -109,9 +113,7 @@
        (or (infix-operator? (first test))
            (and (= 'not (first test))
                 (let [test2 (fnext test)]
-                  (or (logical-test? test2)
-                      (and (string? test2)
-                           (re-find #"^-|\\\(" test2)))))
+                  (logical-test? test2)))
            (and (not= 'not (first test)) (logical-operator? (first test))))))
 
 ;;; Emit special forms
@@ -127,8 +129,10 @@
 (defmethod emit-infix ::bash [type [operator & args]]
   (when (< (count args) 2)
     (throw (Exception. "Less than 2 infix arguments not supported yet.")))
-  (let [open (if (logical-operator? operator) "\\( " "(")
-        close (if (logical-operator? operator) " \\)" ")")
+  (let [[open close] (cond
+                       (logical-operator? operator) ["[ " " ]"]
+                       (arithmetic-operators operator) ["(" ")"]
+                       :else ["" ""])
         quoting (if (quoted-operator? operator) quoted identity)]
     (str open (emit-quoted-if-not-subexpr quoting (first args)) " "
          (get infix-conversions operator operator)
@@ -136,25 +140,25 @@
 
 
 (defmethod emit-special [::bash 'file-exists?] [type [file-exists? path]]
-  (str "-e " (emit path)))
+  (str "[ -e " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'directory?] [type [directory? path]]
-  (str "-d " (emit path)))
+  (str "[ -d " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'symlink?] [type [symlink? path]]
-  (str "-h " (emit path)))
+  (str "[ -h " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'readable?] [type [readable? path]]
-  (str "-r " (emit path)))
+  (str "[ -r " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'writeable?] [type [readable? path]]
-  (str "-w " (emit path)))
+  (str "[ -w " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'empty?] [type [empty? path]]
-  (str "-z " (emit path)))
+  (str "[ -z " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'not] [type [not expr]]
-  (str "! " (emit expr)))
+  (str "! ( " (emit expr) " )"))
 
 (defmethod emit-special [::bash 'local] [type [local name expr]]
   (str "local " (emit name) "=" (emit expr)))
@@ -266,7 +270,7 @@
 (defmethod emit [::bash clojure.lang.IPersistentMap] [expr]
   (letfn [(subscript-assign
            [pair]
-           (str "["(emit (key pair)) "]=" (emit (val pair))))]
+           (str "[" (emit (key pair)) "]=" (emit (val pair))))]
     (str "(" (string/join " " (map subscript-assign (seq expr))) ")")))
 
 ;;; TODO move to pallet.common.string
@@ -291,7 +295,7 @@
 
 (defmethod emit-special [::bash 'if] [type [if test true-form & false-form]]
   (str "if "
-       (if (logical-test? test) (str "[ " (emit test) " ]") (emit test))
+       (emit test)
        "; then"
        (emit-body-for-if true-form)
        (when (first false-form)
@@ -299,11 +303,9 @@
        "fi"))
 
 (defmethod emit-special [::bash 'if-not] [type [if test true-form & false-form]]
-  (str "if "
-       (if (logical-test? test)
-         (str "[ ! " (emit test) " ]")
-         (str "! " (emit test)))
-       "; then"
+  (str "if ! ( "
+       (emit test)
+       " ); then"
        (emit-body-for-if true-form)
        (when (first false-form)
          (str "else" (emit-body-for-if (first false-form))))
@@ -364,15 +366,22 @@
 
 (defmethod emit-special [::bash 'when] [type [when test & form]]
   (str "if "
-       (if (logical-test? test) (str "[ " (emit test) " ]") (emit test))
+       (emit test)
        "; then"
+       (str \newline (string/trim (emit-do form)) \newline)
+       "fi"))
+
+(defmethod emit-special [::bash 'when-not] [type [when-not test & form]]
+  (str "if ! ( "
+       (emit test)
+       " ); then"
        (str \newline (string/trim (emit-do form)) \newline)
        "fi"))
 
 (defmethod emit-special [::bash 'while]
   [type [ while test & exprs]]
   (str "while "
-       (if (logical-test? test) (str "[ " (emit test) " ]") (emit test))
+       (emit test)
        "; do\n"
        (emit-do exprs)
        "done\n"))
