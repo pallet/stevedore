@@ -16,26 +16,30 @@ Installation is with maven or your favourite maven repository aware build tool.
 
 ### lein/cake project.clj
 
-    :dependencies [[org.cloudhoist/stevedore "0.7.1"]]
-    :repositories {"sonatype"
-                   "http://oss.sonatype.org/content/repositories/releases"}
+```clj
+:dependencies [[org.cloudhoist/stevedore "0.7.2"]]
+:repositories {"sonatype"
+               "http://oss.sonatype.org/content/repositories/releases"}
+```
 
 ### maven pom.xml
 
-    <dependencies>
-      <dependency>
-        <groupId>org.cloudhoist</groupId>
-        <artifactId>stevedore</artifactId>
-        <version>0.7.1</version>
-      </dependency>
-    <dependencies>
+```xml
+<dependencies>
+  <dependency>
+    <groupId>org.cloudhoist</groupId>
+    <artifactId>stevedore</artifactId>
+    <version>0.7.2</version>
+  </dependency>
+<dependencies>
 
-    <repositories>
-      <repository>
-        <id>sonatype</id>
-        <url>http://oss.sonatype.org/content/repositories/releases</url>
-      </repository>
-    </repositories>
+<repositories>
+  <repository>
+    <id>sonatype</id>
+    <url>http://oss.sonatype.org/content/repositories/releases</url>
+  </repository>
+</repositories>
+```
 
 ## License
 
