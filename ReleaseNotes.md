@@ -1,6 +1,19 @@
 # Stevedore Release Notes
 
-The latest release is 0.7.1.
+The latest release is 0.7.2.
+
+## 0.7.2
+
+- Simplify conditional generation
+  The conditional expressions were overly complex and could generate
+  incorrect code in some corner cases. This simplifies the generated
+  expressions and makes them more robust
+
+- Create a :default implementation for stevedore/emit
+  Improve the error reporting associated with not binding *script-language*
+  and for un-handled clojure types.
+
+- Add slingshot version compatibility
 
 ## 0.7.1
 

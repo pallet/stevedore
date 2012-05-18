@@ -81,8 +81,8 @@
      `emit-special`."
     :private true}
   special-forms
-  #{'if 'if-not 'when 'case 'aget 'aset 'get 'defn 'return 'set! 'var 'defvar
-    'let 'local 'literally 'deref 'do 'str 'quoted 'apply
+  #{'if 'if-not 'when 'when-not 'case 'aget 'aset 'get 'defn 'return 'set!
+    'var 'defvar 'let 'local 'literally 'deref 'do 'str 'quoted 'apply
     'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
     'not 'println 'print 'group 'pipe 'chain-or
     'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
