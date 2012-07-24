@@ -218,7 +218,7 @@
     (if (string/blank? chained-cmds)
       ""
       (str
-        "echo \"" message "...\"" \newline
-        "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
+      ;;  "echo \"#> " message ": BEGIN\"" \newline
+        "{ " chained-cmds "; } || { echo \"#> " message "\": FAIL; exit 1; } >&2 "
         \newline
-        "echo \"...done\"\n"))))
+        "echo \"#> " message ": SUCCESS \"\n"))))
