@@ -220,7 +220,9 @@
 
 (deftest test-doseq
   (is (= "for X in 1 2 3; do\nsomething ${X}\ndone"
-         (script (doseq [X [1 2 3]] (something @X))))))
+         (script (doseq [X [1 2 3]] (something @X)))))
+  (is (= "for X in $(ls); do\nsomething ${X}\ndone"
+         (script (doseq [X @(ls)] (something @X))))))
 
 
 (deftest test-map

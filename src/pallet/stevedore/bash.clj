@@ -51,6 +51,10 @@
       '> "\\>"
       '= "=="})
 
+(def ^{:dynamic true :private true
+       :doc "Control output of delimiters on sequences"}
+  *delimited-sequence* true)
+
 ;; Helper functions for generating shFlags declarations
 ;; and initializations
 
@@ -265,7 +269,9 @@
   "")
 
 (defmethod emit [::bash clojure.lang.IPersistentVector] [expr]
-  (str "(" (string/join " " (map emit expr)) ")"))
+  (str (if *delimited-sequence* "(" "")
+       (string/join " " (map emit expr))
+       (if *delimited-sequence* ")" "")))
 
 (defmethod emit [::bash clojure.lang.IPersistentMap] [expr]
   (letfn [(subscript-assign
@@ -388,7 +394,8 @@
 
 (defmethod emit-special [::bash 'doseq]
   [type [ doseq [arg values] & exprs]]
-  (str "for " (emit arg) " in " (string/join " " (map emit values))
+  (str "for " (emit arg)
+       " in " (binding [*delimited-sequence* false] (emit values))
        "; do\n"
        (emit-do exprs)
        "done"))
