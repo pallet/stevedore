@@ -1,6 +1,10 @@
 # Stevedore Release Notes
 
-The latest release is 0.7.2.
+The latest release is 0.7.3.
+
+## 0.7.3
+
+- Allow use of deref as a value in a doseq binding
 
 ## 0.7.2
 

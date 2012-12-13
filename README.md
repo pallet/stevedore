@@ -17,7 +17,7 @@ Installation is with maven or your favourite maven repository aware build tool.
 ### lein/cake project.clj
 
 ```clj
-:dependencies [[org.cloudhoist/stevedore "0.7.2"]]
+:dependencies [[org.cloudhoist/stevedore "0.7.3"]]
 :repositories {"sonatype"
                "http://oss.sonatype.org/content/repositories/releases"}
 ```
