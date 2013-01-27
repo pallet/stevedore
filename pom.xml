@@ -8,7 +8,7 @@
   </parent>
   <groupId>org.cloudhoist</groupId>
   <artifactId>stevedore</artifactId>
-  <version>0.7.4-SNAPSHOT</version>
+  <version>0.8.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>stevedore</name>
   <description>
@@ -33,7 +33,7 @@
     </resources>
     <testResources>
       <testResource>
-        <directory>test-resources</directory>
+        <directory>dev-resources</directory>
       </testResource>
     </testResources>
     <plugins>
@@ -69,29 +69,18 @@
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet-common</artifactId>
-      <version>0.2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.6.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <version>1.0.0</version>
-      <scope>test</scope>
+      <version>0.3.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.9</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <properties>
+    <clojure.version>1.4.0</clojure.version>
     <stevedore.doc.version>0.7</stevedore.doc.version>
   </properties>
 </project>
