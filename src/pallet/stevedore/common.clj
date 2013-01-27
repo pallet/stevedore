@@ -1,13 +1,12 @@
 (ns pallet.stevedore.common
   (:require
-    [pallet.stevedore :as stevedore]
-    [clojure.string :as string]
-    [clojure.tools.logging :as logging])
-  (:use
-    [pallet.stevedore
-     :only [emit *script-language*
-            with-script-language filter-empty-splice empty-splice
-            do-script chain-commands checked-commands]]))
+   [clojure.java.io :refer [file]]
+   [clojure.string :as string]
+   [clojure.tools.logging :refer [tracef]]
+   [pallet.stevedore
+    :refer [chain-commands checked-commands do-script emit empty-splice
+            filter-empty-splice *script-fn-dispatch* *script-language*
+            with-script-language]]))
 
 
 ;; Main dispatch functions.
@@ -124,27 +123,50 @@
   (remove #(emit-special-implemented? impl %) special-forms))
 
 ;;; Common implementation
+(defn- ex-location [m]
+  (str "(" (.getName (file (:file m))) ":" (:line m) ")"))
 
 (defmethod emit-special [::common-impl 'invoke]
-  [type [fn-name-or-map & args]]
-  (logging/tracef "INVOKE %s %s" fn-name-or-map args)
-  (if (map? fn-name-or-map)
-    (try
-      (stevedore/*script-fn-dispatch*
-       fn-name-or-map (filter-empty-splice args)
-       stevedore/*script-ns* stevedore/*script-file* stevedore/*script-line*)
-      (catch java.lang.IllegalArgumentException e
-        (throw
-         (java.lang.IllegalArgumentException.
-          (str "Invalid arguments for script function "
-               (name (:fn-name fn-name-or-map))) e))))
-    (let [argseq (->>
+  [type form]
+  (let [[fn-name-or-map & args] form]
+    (tracef "INVOKE %s %s" fn-name-or-map args)
+    (tracef "INVOKE %s" (meta form))
+    (if (map? fn-name-or-map)
+      (let [m (meta form)]
+        (try
+          (*script-fn-dispatch*
+           fn-name-or-map (filter-empty-splice args)
+           (:ns m) (or (:file m) *file*) (:line m))
+          (catch clojure.lang.ArityException e
+            ;; Add the script location to the error message, and use the
+            ;; unmangled script function name.
+            (throw
+             (ex-info
+              (str "Wrong number of args (" (.actual e) ") passed to: "
+                   (name (:fn-name fn-name-or-map)) " " (ex-location m))
+              (merge
+               m
+               {:actual (.actual e)
+                :script-fn (:fn-name fn-name-or-map)})
+              e)))
+          (catch Exception e
+            ;; Add the script location and script function name to the error
+            ;; message
+            (throw
+             (ex-info
+              (str (.getMessage e) " in call to "
+                   (name (:fn-name fn-name-or-map)) " " (ex-location m))
+              (merge
+               m
+               {:script-fn (:fn-name fn-name-or-map)})
+              e)))))
+      (let [argseq (->>
                     args
                     filter-empty-splice
                     (map emit)
                     (filter (complement string/blank?))
                     (interpose " "))]
-      (apply emit-function-call fn-name-or-map argseq))))
+        (apply emit-function-call fn-name-or-map argseq)))))
 
 (defn- emit-s-expr [expr]
   (if (symbol? (first expr))
@@ -170,6 +192,9 @@
    :else (apply list (first arglist) (spread (next arglist)))))
 
 (defmethod emit [::common-impl clojure.lang.IPersistentList] [expr]
+  (emit-s-expr expr))
+
+(defmethod emit [::common-impl clojure.lang.PersistentList] [expr]
   (emit-s-expr expr))
 
 (defmethod emit [::common-impl clojure.lang.Cons]

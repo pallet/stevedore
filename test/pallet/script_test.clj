@@ -2,8 +2,9 @@
   (:use
    [pallet.stevedore :only [with-script-language]]
    pallet.script
-   clojure.test
-   pallet.common.slingshot-test-util))
+   clojure.test))
+
+(defmacro current-line [] (:line (meta &form)))
 
 (deftest matches?-test
   (with-script-context [:ubuntu]
@@ -26,13 +27,13 @@
     (let [f (script-fn [a b])]
       (is (= :anonymous (:fn-name f)))
       (with-script-context [:a]
-        (is-thrown-slingshot? (dispatch f [1 1]))
+        (is (thrown? clojure.lang.ExceptionInfo (dispatch f [1 1])))
         (implement f :default (fn [a b] b))
         (is (= 2 (dispatch f [1 2]))))))
   (testing "varargs"
     (let [f (script-fn [a b & c])]
       (with-script-context [:a]
-        (is-thrown-slingshot? (dispatch f [1 1 2 3]))
+        (is (thrown? clojure.lang.ExceptionInfo (dispatch f [1 1 2 3])))
         (implement f :default (fn [a b & c] c))
         (is (= [2 3] (dispatch f [1 1 2 3]))))))
   (testing "named"
@@ -69,17 +70,34 @@
 
 (deftest dispatch-test
   (with-script-language :pallet.stevedore.bash/bash
-    (let [x (script-fn [a])]
+    (let [x (script-fn test-script [a])]
       (testing "with no implementation"
         (testing "should raise"
           (pallet.stevedore/with-script-fn-dispatch
             script-fn-dispatch
             (with-script-context [:ubuntu]
-              (is-thrown-slingshot? (pallet.stevedore/script (~x 2)))))))
+              (is (thrown-with-msg? clojure.lang.ExceptionInfo #"No implementation.*"
+                    (pallet.stevedore/script (~x 2))))
+              (try
+                (pallet.stevedore/script (~x 2))
+                (catch clojure.lang.ExceptionInfo e
+                  (let [info (ex-data e)]
+                    (is (:line info)))))))))
       (testing "with an implementation"
         (defimpl x :default [a] (str "x" ~a 1))
         (testing "and mandatory dispatch"
           (pallet.stevedore/with-script-fn-dispatch
             script-fn-dispatch
             (with-script-context [:ubuntu]
-              (is (= "x21" (pallet.stevedore/script (~x 2)))))))))))
+              (is (= "x21" (pallet.stevedore/script (~x 2))))))))
+      (testing "with incorrect arguments"
+        (defimpl x :default [a] (str "x" ~a 1))
+        (pallet.stevedore/with-script-fn-dispatch
+          script-fn-dispatch
+          (with-script-context [:ubuntu]
+            (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                  (re-pattern
+                   (str "Wrong number of args.*test-script.*script_test.clj:"
+                        (inc (current-line))))
+                  (pallet.stevedore/script (~x 1 2)))
+                "Exception contains script function name, file name and line")))))))

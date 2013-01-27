@@ -8,11 +8,6 @@
    [pallet.stevedore :only [emit emit-do *script-fn-dispatch* empty-splice]]
    [pallet.common.string :only [quoted substring underscore]]))
 
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
-
 (derive ::bash :pallet.stevedore.common/common-impl)
 
 ;;; * Keyword and Operator Classes
@@ -169,9 +164,10 @@
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (throw+
-     {:type :invalid-bash-symbol
-      :message (format "Invalid bash symbol %s" var-name)}))
+    (throw
+     (ex-info
+      (format "Invalid bash symbol %s" var-name)
+      {:type :invalid-bash-symbol})))
   var-name)
 
 (defn- munge-symbol [var-name]

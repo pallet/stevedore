@@ -2,8 +2,7 @@
   (:use
    [pallet.common.string :only [quoted]]
    pallet.stevedore
-   clojure.test
-   pallet.common.slingshot-test-util)
+   clojure.test)
   (:require
    [pallet.script :as script]
    [pallet.stevedore.common]
@@ -131,11 +130,11 @@
 
 (deftest test-set!
   (is (= "foo=1" (script (set! foo 1))))
-  (is-thrown-slingshot? (script (set! foo-bar 1))))
+  (is (thrown? clojure.lang.ExceptionInfo (script (set! foo-bar 1)))))
 
 (deftest var-test
   (is (= "foo=1" (script (var foo 1))))
-  (is-thrown-slingshot? (script (var foo-bar 1))))
+  (is (thrown? clojure.lang.ExceptionInfo (script (var foo-bar 1)))))
 
 (deftest alias-test
   (is (= "alias foo='ls -l'" (script (alias foo (ls -l))))))
@@ -378,4 +377,4 @@
 
 (logutils/with-threshold [:error]
   (script/defscript x [a])
-  (defimpl x :default [a] a))
+  (script/defimpl x :default [a] a))

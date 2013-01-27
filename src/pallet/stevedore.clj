@@ -6,16 +6,11 @@
 
    The result of a `script` form is a string."
   (:require
-    [pallet.common.deprecate :as deprecate]
-    [clojure.string :as string]
-    [clojure.walk :as walk])
-  (:use
-    [pallet.common.string :only [underscore]]))
-
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
+   [clojure.string :as string]
+   [clojure.tools.logging :refer [tracef]]
+   [clojure.walk :as walk]
+   [pallet.common.deprecate :as deprecate]
+   [pallet.common.string :refer [underscore]]))
 
 (declare ^{:dynamic true} *script-language*)
 
@@ -54,9 +49,11 @@
          (ls -l \"*.sh\"))
   Must be wrapped in `with-script-language`."
   [& forms]
-  `(with-line-number [~*file* ~(:line (meta &form))]
-     (binding [*script-ns* ~*ns*]
-       (emit-script (quasiquote ~forms)))))
+  `(emit-script (quasiquote ~forms))
+  ;; `(with-line-number [~*file* ~(:line (meta &form))]
+  ;;    (binding [*script-ns* ~*ns*]
+  ;;      (emit-script (quasiquote ~forms))))
+  )
 
 
 ;;; Public script combiners
@@ -116,14 +113,15 @@
    chained shell script command."
   [& forms]
   `(chain-commands
-    ~@(map (fn [f] (list `script f)) forms)))
+    ~@(map (fn [f] (with-meta (list `script f) (meta f))) forms)))
 
 (defmacro checked-script
   "Takes one or more forms. Returns a string of the forms translated into
    shell scrip.  Wraps the expression in a test for the result status."
   [message & forms]
-  `(checked-commands ~message
-    ~@(map (fn [f] (list `script f)) forms)))
+  `(checked-commands
+    ~message
+    ~@(map (fn [f] (with-meta (list `script f) (meta f))) forms)))
 
 
 
@@ -165,15 +163,17 @@
 (defmethod emit :default
   [expr]
   (when-not (bound? #'*script-language*)
-    (throw+
-     {:expr expr}
-     "Attempting to use stevedore without specifying the target script language. Use pallet.stevedore/with-script-language to specify the target script language."))
-  (throw+
-     {:script-language *script-language*
-      :expr expr}
-     (format
-      "Script language %s doesn't know how to handle expressions of type %s (value is %s)."
-      *script-language* (type expr) expr)))
+    (throw
+     (ex-info
+      "Attempting to use stevedore without specifying the target script language. Use pallet.stevedore/with-script-language to specify the target script language."
+      {:expr expr})))
+  (throw
+   (ex-info
+    (format
+     "Script language %s doesn't know how to handle expressions of type %s (value is %s)."
+     *script-language* (type expr) expr)
+    {:script-language *script-language*
+     :expr expr})))
 
 
 
@@ -186,15 +186,15 @@
 (def ^{:doc "Current stevedore implementation" :dynamic true}
   *script-language*)
 
-(def ^{:doc "Used to capture the namespace in which `script` is invoked."
-       :dynamic true}
-  *script-ns*)
+;; (def ^{:doc "Used to capture the namespace in which `script` is invoked."
+;;        :dynamic true}
+;;   *script-ns*)
 
-(def ^{:doc "Used to capture a form's line number." :dynamic true}
-  *script-line*)
+;; (def ^{:doc "Used to capture a form's line number." :dynamic true}
+;;   *script-line*)
 
-(def ^{:doc "Used to capture a form's file name." :dynamic true}
-  *script-file*)
+;; (def ^{:doc "Used to capture a form's file name." :dynamic true}
+;;   *script-file*)
 
 (defmacro with-line-number
   "Provide the source file and line number for use in reporting."
@@ -262,26 +262,60 @@
 ;; These functions are used for an initial scan over stevedore forms
 ;; resolving escaping to Clojure and quoting symbols to stop namespace
 ;; resolution.
+(defn- form-meta
+  [new-form form ]
+  (tracef "form-meta %s %s" form (meta form))
+  (if-let [m (meta form)]
+    `(with-meta ~new-form ~(merge {:file *file*} (meta form)))
+    new-form))
+
+(defn- walk
+  "Traverses form, an arbitrary data structure.  inner and outer are
+  functions.  Applies inner to each element of form, building up a
+  data structure of the same type, then applies outer to the result.
+  Recognizes all Clojure data structures. Consumes seqs as with doall."
+
+  {:added "1.1"}
+  [inner outer form]
+  (tracef "walk %s %s" form (meta form))
+  (cond
+   (list? form) (outer (form-meta (apply list (map inner form)) form))
+   (instance? clojure.lang.IMapEntry form) (outer (vec (map inner form)))
+   (seq? form) (outer (form-meta (doall (map inner form)) form))
+   (coll? form) (outer (form-meta (into (empty form) (map inner form)) form))
+   :else (outer form)))
 
 (declare inner-walk outer-walk)
 
 (defmacro quasiquote
   [form]
-  (let [post-form (walk/walk inner-walk outer-walk form)]
-    post-form))
+  (tracef "quasiquote %s %s" form (meta form))
+  (let [post-form (walk inner-walk outer-walk form)]
+    (tracef "quasiquote return %s" post-form)
+    (form-meta post-form form)))
 
 (defn- inner-walk [form]
+  (tracef "inner-walk %s %s" form (meta form))
   (cond
    (unquote? form) (handle-unquote form)
    (unquote-splicing? form) (handle-unquote-splicing form)
-   :else (walk/walk inner-walk outer-walk form)))
+   :else (form-meta (walk/walk inner-walk outer-walk form) form)))
 
 (defn- outer-walk [form]
+  (tracef "outer-walk %s %s" form (meta form))
   (cond
-   (symbol? form) (list 'quote form)
-   (seq? form) (list* 'list form)
+   (symbol? form) (form-meta (list 'quote form) form)
+   (seq? form)
+   (do
+     (tracef "outer-walk %s %s" form (meta form))
+     (form-meta (list* 'list form) form))
    :else form))
 
+
+                        ;; (let [s (first form)]
+                        ;;   (clojure.tools.logging/info "outer-walk %s" form)
+                        ;;   (if (symbol? s) (list 'quote s) s))
+                        ;; (rest form)
 
 ;;; High level string generation functions
 (def statement-separator "\n")
@@ -301,6 +335,8 @@
 
 (defn emit-script
   [forms]
+  (tracef "emit-script %s" forms)
+  (tracef "emit-script metas %s" (vec (map meta forms)))
   (let [code (if (> (count forms) 1)
                (emit-do (filter-empty-splice forms))
                (let [form (first forms)]
@@ -371,18 +407,3 @@
   [f & body]
   `(binding [*script-fn-dispatch* ~f]
      ~@body))
-
-
-
-
-;; DEPRECATED
-
-(defmacro defimpl
-  {:deprecated "0.5.0"}
-  [script specialisers [& args] & body]
-  (require 'pallet.script)
-  `(do
-     (deprecate/deprecated-macro
-      ~&form
-      (deprecate/rename 'pallet.stevedore/defimpl 'pallet.script/defimpl))
-     (pallet.script/defimpl ~script ~specialisers [~@args] ~@body)))
