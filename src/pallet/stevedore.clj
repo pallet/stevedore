@@ -6,6 +6,7 @@
 
    The result of a `script` form is a string."
   (:require
+   [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.logging :refer [tracef]]
    [clojure.walk :as walk]
@@ -44,16 +45,27 @@
 (defmacro script
   "Takes one or more forms. Returns a string of the forms translated into
    shell script.
+
        (script
+         (println \"hello\")
+         (ls -l \"*.sh\"))
+
+  Must be wrapped in `with-script-language`.  Can be wrapped in
+  `with-source-line-comments` to control the generation of source line
+  comments in the script."
+  [& forms]
+  `(emit-script (quasiquote ~forms)))
+
+(defmacro fragment
+  "Takes one or more forms. Returns a string of the forms translated into
+   shell script. The returned fragment will have no source line annotations.
+
+       (fragment
          (println \"hello\")
          (ls -l \"*.sh\"))
   Must be wrapped in `with-script-language`."
   [& forms]
-  `(emit-script (quasiquote ~forms))
-  ;; `(with-line-number [~*file* ~(:line (meta &form))]
-  ;;    (binding [*script-ns* ~*ns*]
-  ;;      (emit-script (quasiquote ~forms))))
-  )
+  `(with-source-line-comments nil (emit-script (quasiquote ~forms))))
 
 
 ;;; Public script combiners
@@ -203,6 +215,14 @@
             *script-file* ~file]
     ~@body))
 
+(defn- form-meta
+  [new-form form ]
+  (tracef "form-meta %s %s" form (meta form))
+  (if-let [m (meta form)]
+    (if (number? new-form)
+      new-form
+      `(with-meta ~new-form ~(merge {:file *file*} (meta form))))
+    new-form))
 
 ;; Preprocessing functions
 ;;
@@ -256,19 +276,12 @@
     empty-splice))
 
 (defn- handle-unquote-splicing [form]
-  (list `splice (second form)))
+  (form-meta (list `splice (second form)) form))
 
 
 ;; These functions are used for an initial scan over stevedore forms
 ;; resolving escaping to Clojure and quoting symbols to stop namespace
 ;; resolution.
-(defn- form-meta
-  [new-form form ]
-  (tracef "form-meta %s %s" form (meta form))
-  (if-let [m (meta form)]
-    `(with-meta ~new-form ~(merge {:file *file*} (meta form)))
-    new-form))
-
 (defn- walk
   "Traverses form, an arbitrary data structure.  inner and outer are
   functions.  Applies inner to each element of form, building up a
@@ -297,7 +310,7 @@
 (defn- inner-walk [form]
   (tracef "inner-walk %s %s" form (meta form))
   (cond
-   (unquote? form) (handle-unquote form)
+   (unquote? form) (form-meta (handle-unquote form) form)
    (unquote-splicing? form) (handle-unquote-splicing form)
    :else (form-meta (walk/walk inner-walk outer-walk form) form)))
 
@@ -320,18 +333,36 @@
 ;;; High level string generation functions
 (def statement-separator "\n")
 
+(defn script-location-comment
+  [{:keys [file line]}]
+  (format "    # %s:%s\n" (.getName (io/file (or file *file*))) line))
+
+(def ^:dynamic ^:internal *src-line-comments* true)
+
+(defmacro with-source-line-comments [flag & body]
+  `(binding [*src-line-comments* ~flag]
+     ~@body))
+
 (defn statement
   "Emit an expression as a valid shell statement, with separator."
-  [expr]
+  [form script]
   ;; check the substring count, as it can be negative if there is a syntax issue
   ;; in a stevedore expression, and generates a cryptic error message otherwise
-  (let [n (- (count expr) (count statement-separator))]
-    (if (and (pos? n) (not (= statement-separator (.substring expr n))))
-      (str expr statement-separator)
-      expr)))
+  (let [n (- (count script) (count statement-separator))
+        m (meta form)]
+    (if (and (pos? n) (not (= statement-separator (.substring script n))))
+      (str (when (and m *src-line-comments* (not (string/blank? script)))
+             (script-location-comment m))
+           script
+           statement-separator)
+      script)))
 
 (defn emit-do [exprs]
-  (string/join (map (comp statement emit) (filter-empty-splice exprs))))
+  (let [exprs (filter-empty-splice exprs)]
+    (->> exprs
+         (map emit)
+         (map statement exprs)
+         string/join)))
 
 (defn emit-script
   [forms]
@@ -339,10 +370,15 @@
   (tracef "emit-script metas %s" (vec (map meta forms)))
   (let [code (if (> (count forms) 1)
                (emit-do (filter-empty-splice forms))
-               (let [form (first forms)]
+               (let [form (first forms)
+                     m (meta form)]
                  (if (= form empty-splice)
                    ""
-                   (emit form))))]
+                   (let [s (emit form)]
+                     (str
+                      (when (and m *src-line-comments* (not (string/blank? s)))
+                        (script-location-comment m))
+                      s)))))]
     code))
 
 

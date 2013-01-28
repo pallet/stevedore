@@ -5,7 +5,9 @@
     [clojure.string :as string])
   (:use
    [pallet.stevedore.common]
-   [pallet.stevedore :only [emit emit-do *script-fn-dispatch* empty-splice]]
+   [pallet.stevedore
+    :only [emit emit-do *script-fn-dispatch* empty-splice
+           with-source-line-comments]]
    [pallet.common.string :only [quoted substring underscore]]))
 
 (derive ::bash :pallet.stevedore.common/common-impl)
@@ -359,8 +361,8 @@
 (defmethod emit-special [::bash 'deref]
   [type [deref expr]]
   (if (instance? clojure.lang.IPersistentList expr)
-    (str "$(" (emit expr) ")")
-    (str "${" (emit expr) "}")))
+    (str "$(" (with-source-line-comments false (emit expr)) ")")
+    (str "${" (with-source-line-comments false (emit expr)) "}")))
 
 
 (defmethod emit-special [::bash 'do] [type [ do & exprs]]
@@ -402,15 +404,15 @@
 
 (defmethod emit-special [::bash 'pipe]
   [type [ pipe & exprs]]
-  (string/join " | " (map emit exprs)))
+  (chain-with "|" (map emit exprs)))
 
 (defmethod emit-special [::bash 'chain-or]
   [type [chain-or & exprs]]
-  (string/join " || " (map emit exprs)))
+  (chain-with "||" (map emit exprs)))
 
 (defmethod emit-special [::bash 'chain-and]
   [type [chain-and & exprs]]
-  (string/join " && " (map emit exprs)))
+  (chain-with "&&" (map emit exprs)))
 
 (defmethod emit-function ::bash
   [name doc? sig body]
@@ -420,8 +422,11 @@
        (emit-do body)
        "}\n"))
 
+;; We would like to be able to add source comments for each argument of a
+;; function inline, but this is not possible (only works in a |, || or &&
+;; pipeline).
 (defmethod emit-function-call ::bash
   [name & args]
   (if (seq args)
-    (apply str (emit name) " " args)
+    (str (emit name) " " (reduce str (interpose " " args)))
     (emit name)))

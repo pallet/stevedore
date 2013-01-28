@@ -1,6 +1,7 @@
 (ns pallet.script-test
   (:use
    [pallet.stevedore :only [with-script-language]]
+   pallet.stevedore.test-common
    pallet.script
    clojure.test))
 
@@ -89,7 +90,7 @@
           (pallet.stevedore/with-script-fn-dispatch
             script-fn-dispatch
             (with-script-context [:ubuntu]
-              (is (= "x21" (pallet.stevedore/script (~x 2))))))))
+              (is (script= "x21" (pallet.stevedore/script (~x 2))))))))
       (testing "with incorrect arguments"
         (defimpl x :default [a] (str "x" ~a 1))
         (pallet.stevedore/with-script-fn-dispatch

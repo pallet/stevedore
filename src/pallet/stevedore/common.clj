@@ -6,7 +6,8 @@
    [pallet.stevedore
     :refer [chain-commands checked-commands do-script emit empty-splice
             filter-empty-splice *script-fn-dispatch* *script-language*
-            with-script-language]]))
+            *src-line-comments* with-script-language
+            with-source-line-comments]]))
 
 
 ;; Main dispatch functions.
@@ -135,7 +136,9 @@
       (let [m (meta form)]
         (try
           (*script-fn-dispatch*
-           fn-name-or-map (filter-empty-splice args)
+           fn-name-or-map
+           (with-source-line-comments false
+             (vec (filter-empty-splice args)))
            (:ns m) (or (:file m) *file*) (:line m))
           (catch clojure.lang.ArityException e
             ;; Add the script location to the error message, and use the
@@ -160,12 +163,13 @@
                m
                {:script-fn (:fn-name fn-name-or-map)})
               e)))))
-      (let [argseq (->>
-                    args
-                    filter-empty-splice
-                    (map emit)
-                    (filter (complement string/blank?))
-                    (interpose " "))]
+      (let [argseq (with-source-line-comments false
+                     (->>
+                      args
+                      filter-empty-splice
+                      (map emit)
+                      (filter (complement string/blank?))
+                      doall))]
         (apply emit-function-call fn-name-or-map argseq)))))
 
 (defn- emit-s-expr [expr]
@@ -230,12 +234,23 @@
     (string/join \newline))
    \newline))
 
+(defn chain-with
+  [chain-op scripts]
+  (let [scripts (filter (complement string/blank?) scripts)
+        sep (if *src-line-comments* " \\\n" " ")]
+    (if (= 1 (count scripts))
+      (first scripts)
+      (->>
+       scripts
+       (map string/trim)
+       (string/join (str " " chain-op sep))
+       string/split-lines
+       (string/join "\n") ; do not indent blocks to avoid heredoc issues
+       string/trim))))
+
 (defmethod chain-commands ::common-impl
   [& scripts]
-  (string/join " && "
-    (filter
-     (complement string/blank?)
-     (map #(when % (string/trim %)) scripts))))
+  (chain-with "&&" scripts))
 
 (def ^:dynamic *status-marker* "#> ")
 (def ^:dynamic *status-fail* " : FAIL")
@@ -257,5 +272,6 @@
       ""
       (str
        (checked-start message) \newline
-       "{ " chained-cmds "; } || { " (checked-fail message) " } >&2 " \newline
-       (checked-success message)))))
+       "{\n" chained-cmds "\n } || { " (checked-fail message)
+       "} >&2 " \newline
+       (checked-success message) \newline))))
