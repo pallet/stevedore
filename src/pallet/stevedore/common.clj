@@ -237,13 +237,25 @@
      (complement string/blank?)
      (map #(when % (string/trim %)) scripts))))
 
+(def ^:dynamic *status-marker* "#> ")
+(def ^:dynamic *status-fail* " : FAIL")
+(def ^:dynamic *status-success* " : SUCCESS")
+
+(defn checked-start [message]
+  (str "echo '" message "...';"))
+
+(defn checked-fail [message]
+  (str "echo '" *status-marker* message *status-fail* "'; exit 1;"))
+
+(defn checked-success [message]
+  (str "echo '" *status-marker* message *status-success* "'"))
+
 (defmethod checked-commands ::common-impl
   [message & cmds]
   (let [chained-cmds (apply chain-commands cmds)]
     (if (string/blank? chained-cmds)
       ""
       (str
-        "echo \"" message "...\"" \newline
-        "{ " chained-cmds "; } || { echo \"" message "\" failed; exit 1; } >&2 "
-        \newline
-        "echo \"...done\"\n"))))
+       (checked-start message) \newline
+       "{ " chained-cmds "; } || { " (checked-fail message) " } >&2 " \newline
+       (checked-success message)))))

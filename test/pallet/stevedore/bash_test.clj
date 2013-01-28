@@ -315,27 +315,27 @@
   (is (= "fred && blogs" (chained-script (fred) (blogs)))))
 
 (deftest checked-commands-test
-  (is (= "echo \"test...\"\n{ echo fred && echo tom; } || { echo \"test\" failed; exit 1; } >&2 \necho \"...done\"\n"
+  (is (= "echo 'test...';\n{ echo fred && echo tom; } || { echo '#> test : FAIL'; exit 1; } >&2 \necho '#> test : SUCCESS'"
          (checked-commands "test" "echo fred" "echo tom")))
-  (is (= "test...\ntom\n...done\n"
+  (is (= "test...\ntom\n#> test : SUCCESS\n"
          (bash-out (checked-commands "test" "echo tom"))))
-  (is (= "test...\nfred\ntom\n...done\n"
+  (is (= "test...\nfred\ntom\n#> test : SUCCESS\n"
          (bash-out (checked-commands "test" "echo fred" "echo tom"))))
   (is (= "test...\n"
          (bash-out
-          (checked-commands "test" "test 1 = 2") 1 "test failed\n"))))
+          (checked-commands "test" "test 1 = 2") 1 "#> test : FAIL\n"))))
 
 (deftest checked-script-test
   (is (= (checked-commands "msg" (script ls) (script ls))
          (checked-script "msg" (ls) (ls))))
-  (is (= "echo \"test...\"\n{ echo fred && echo tom; } || { echo \"test\" failed; exit 1; } >&2 \necho \"...done\"\n"
+  (is (= "echo 'test...';\n{ echo fred && echo tom; } || { echo '#> test : FAIL'; exit 1; } >&2 \necho '#> test : SUCCESS'"
          (checked-script "test" (println fred) (println tom))))
-  (is (= "test...\ntom\n...done\n"
+  (is (= "test...\ntom\n#> test : SUCCESS\n"
          (bash-out (checked-script "test" (println tom)))))
-  (is (= "test...\nfred\ntom\n...done\n"
+  (is (= "test...\nfred\ntom\n#> test : SUCCESS\n"
          (bash-out (checked-script "test" (println fred) (println tom)))))
   (is (= "test...\n"
-         (bash-out (checked-script "test" ("test" 1 = 2)) 1 "test failed\n"))))
+         (bash-out (checked-script "test" ("test" 1 = 2)) 1 "#> test : FAIL\n"))))
 
 (deftest group-test
   (is (= "{ ls; }"
