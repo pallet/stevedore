@@ -24,11 +24,6 @@
    [pallet.stevedore :as stevedore]
    [clojure.tools.logging :as logging]))
 
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
-
 (def
   ^{:doc
     "Determine the target to generate script for.
@@ -125,14 +120,16 @@
      (logging/tracef "dispatch-target %s %s" script (print-args args))
      (if-let [f (or (best-match @(:methods script)))]
        (apply f args)
-       (throw+
-        {:type :no-script-implementation
-         :template *script-context*
-         :file file
-         :line line
-         :message (format
-                   "No implementation for %s with template %s"
-                   (:fn-name script) (pr-str *script-context*))}))))
+       (throw
+        (ex-info
+         (format
+          "No implementation for %s with template %s"
+          (:fn-name script) (pr-str *script-context*))
+         {:type :no-script-implementation
+          :template *script-context*
+          :file file
+          :line line
+          })))))
 
 (defn invoke
   "Invoke `script` with the given `args`.  The implementations of `script` is

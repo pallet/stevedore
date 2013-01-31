@@ -5,11 +5,6 @@
     [pallet.stevedore.common]
     [pallet.stevedore :only [emit emit-do]]))
 
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
-
 (derive ::batch :pallet.stevedore.common/common-impl)
 
 ;;; * Keyword and Operator Classes
@@ -65,14 +60,15 @@
 (defmethod emit-function-call ::batch
   [name & args]
   (if (seq args)
-    (apply str "call:" (emit name) " " args)
+    (apply str "call:" (emit name) " " (interpose " " args))
     (str "call:" (emit name))))
 
 (defn- check-symbol [var-name]
   (when (re-matches #".*-.*" var-name)
-    (throw+
-     {:type :invalid-bash-symbol
-      :message (format "Invalid batch symbol %s" var-name)}))
+    (throw
+     (ex-info
+      (format "Invalid batch symbol %s" var-name)
+      {:type :invalid-bash-symbol})))
   var-name)
 
 (defmethod emit-special [::batch 'set!] [type [set! var val]]

@@ -1,0 +1,23 @@
+<configuration scan="true" scanPeriod="1 seconds" debug="false">
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>[%thread] %logger{10} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="PALLETFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/pallet.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/old/pallet.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>3</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date %level [%thread] %logger{10} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="DEBUG">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="PALLETFILE" />
+  </root>
+</configuration>

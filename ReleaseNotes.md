@@ -2,6 +2,38 @@
 
 The latest release is 0.7.3.
 
+## 0.8.0-alpha.1
+
+- Update to pallet-common 0.3.1
+
+- Add source form location in script comments
+  When generating script, insert the file and line of the source forms that
+  generate the script.  The file and line are inserted as comments on the
+  line preceding the generated code.  This is a convenient format that
+  allows script lines to be easily used in continuation lines, when
+  chaining commands together for instance.
+
+  Introduces pallet.stevedore/fragment, which is similar to p.s/script,
+  except that it disables source comments and ensures pipelines are kept on
+  a single line.  This is required in some expansion contexts.
+
+  The pallet.stevedore/with-source-line-comments macro can also be used to
+  control the output of source comments when using p.stevedore/script.
+
+- Add a marker to messages for script exit status
+  In order to allow grep'ing for status messages, a prefix is added to each
+  message. By default, prefix script exit status messages by '#> '.  The
+  prefix may be altered by binding pallet.stevedore.common/*status-marker*.
+
+- Ensure propagation of metadata on stevedore forms
+  We correctly propagate :line metadata, and add :file metadata, to each
+  stevedore source form and use it in exceptions.  Removes use of slingshot
+  and forces clojure 1.4+.
+
+- Update project version and dependencies
+  Also changes to use dev-resources instead of test-resources, to match
+  lein2 conventions.
+
 ## 0.7.3
 
 - Allow use of deref as a value in a doseq binding
