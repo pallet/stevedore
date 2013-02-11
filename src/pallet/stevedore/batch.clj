@@ -81,7 +81,7 @@
   (apply clojure.core/str (map emit args)))
 
 (defmethod emit-special [::batch 'println] [type [println & args]]
-  (str "echo " (emit args)))
+  (str "echo " (string/join " " (map emit args))))
 
 (defmethod emit-special [::batch 'deref]
   [type [deref expr]]

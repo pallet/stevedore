@@ -5,7 +5,7 @@
    [clojure.tools.logging :refer [tracef]]
    [pallet.stevedore
     :refer [chain-commands checked-commands do-script emit empty-splice
-            filter-empty-splice *script-fn-dispatch* *script-language*
+            filter-empty-splice *script-language* special-forms
             *src-line-comments* with-script-language
             with-source-line-comments]]))
 
@@ -72,22 +72,6 @@
   should implement it's own multimethod."
   (fn [expr] *script-language*))
 
-
-
-;;; * Keyword and Operator Classes
-(def
-  ^{:doc
-    "Special forms are handled explcitly by an implementation of
-     `emit-special`."
-    :private true}
-  special-forms
-  #{'if 'if-not 'when 'when-not 'case 'aget 'aset 'get 'defn 'return 'set!
-    'var 'defvar 'let 'local 'literally 'deref 'do 'str 'quoted 'apply
-    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
-    'not 'println 'print 'group 'pipe 'chain-or
-    'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
-
-
 ;;; Predicates for keyword/operator classes
 (defn special-form?
   "Predicate to check if expr is a special form"
@@ -125,44 +109,41 @@
 
 ;;; Common implementation
 (defn- ex-location [m]
-  (str "(" (.getName (file (:file m))) ":" (:line m) ")"))
+  (str "(" (or (and (:file m) (.getName (file (:file m)))) "UNKNOWN")
+       ":" (:line m) ")"))
 
 (defmethod emit-special [::common-impl 'invoke]
   [type form]
   (let [[fn-name-or-map & args] form]
     (tracef "INVOKE %s %s" fn-name-or-map args)
     (tracef "INVOKE %s" (meta form))
-    (if (map? fn-name-or-map)
-      (let [m (meta form)]
-        (try
-          (*script-fn-dispatch*
-           fn-name-or-map
-           (with-source-line-comments false
-             (vec (filter-empty-splice args)))
-           (:ns m) (or (:file m) *file*) (:line m))
-          (catch clojure.lang.ArityException e
-            ;; Add the script location to the error message, and use the
-            ;; unmangled script function name.
-            (throw
-             (ex-info
-              (str "Wrong number of args (" (.actual e) ") passed to: "
-                   (name (:fn-name fn-name-or-map)) " " (ex-location m))
-              (merge
-               m
-               {:actual (.actual e)
-                :script-fn (:fn-name fn-name-or-map)})
-              e)))
-          (catch Exception e
-            ;; Add the script location and script function name to the error
-            ;; message
-            (throw
-             (ex-info
-              (str (.getMessage e) " in call to "
-                   (name (:fn-name fn-name-or-map)) " " (ex-location m))
-              (merge
-               m
-               {:script-fn (:fn-name fn-name-or-map)})
-              e)))))
+    (if (fn? fn-name-or-map)
+      (try
+        (apply fn-name-or-map args)
+        (catch clojure.lang.ArityException e
+          ;; Add the script location to the error message, and use the
+          ;; unmangled script function name.
+          (throw
+           (ex-info
+            (str "Wrong number of args (" (.actual e) ") passed to: "
+                 (name (:fn-name (meta fn-name-or-map))) " "
+                 (ex-location (meta form)))
+            (merge
+             (meta fn-name-or-map)
+             {:actual (.actual e)
+              :script-fn (:fn-name (meta fn-name-or-map))})
+            e)))
+        (catch Exception e
+          ;; Add the script location and script function name to the error
+          ;; message
+          (throw
+           (ex-info
+            (str (.getMessage e) " in call to "
+                 (:fn-name (meta fn-name-or-map)) " " (ex-location form))
+            (merge
+             (meta fn-name-or-map)
+             {:script-fn (:fn-name (meta fn-name-or-map))})
+            e))))
       (let [argseq (with-source-line-comments false
                      (->>
                       args
@@ -182,11 +163,7 @@
        (special-form? head) (emit-special head expr1)
        (infix-operator? head) (emit-infix head expr1)
        :else (emit-special 'invoke expr)))
-    (if (map? (first expr))
-      (emit-special 'invoke expr)
-      (when (seq expr)
-        (string/join
-         " " (filter (complement string/blank?) (map emit expr)))))))
+    (emit-special 'invoke expr)))
 
 (defn- spread
   [arglist]

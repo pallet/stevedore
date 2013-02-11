@@ -6,8 +6,7 @@
   (:use
    [pallet.stevedore.common]
    [pallet.stevedore
-    :only [emit emit-do *script-fn-dispatch* empty-splice
-           with-source-line-comments]]
+    :only [emit emit-do empty-splice special-forms with-source-line-comments]]
    [pallet.common.string :only [quoted substring underscore]]))
 
 (derive ::bash :pallet.stevedore.common/common-impl)
@@ -219,10 +218,10 @@
   (common-string/quoted (emit arg)))
 
 (defmethod emit-special [::bash 'println] [type [println & args]]
-  (str "echo " (emit args)))
+  (str "echo " (string/join " " (map emit args))))
 
 (defmethod emit-special [::bash 'print] [type [println & args]]
-  (str "echo -n " (emit args)))
+  (str "echo -n " (string/join " " (map emit args))))
 
 
 (defonce
