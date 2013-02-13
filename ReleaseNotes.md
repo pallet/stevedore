@@ -1,6 +1,19 @@
 # Stevedore Release Notes
 
-The latest release is 0.7.3.
+The latest stable release is 0.7.3.
+
+## 0.8.0-beta.1
+
+- Change groupID to com.palletops
+
+- Use leiningen instead of maven
+
+- Symbols in argument position are resolved
+  This removes the need to deref script functions.  Script functions are 
+  now regular functions, with a custom dispatch mechanism.  Plain clojure
+  functions can now be used as script functions.
+
+  Fixes #22.
 
 ## 0.8.0-alpha.1
 
