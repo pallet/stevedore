@@ -131,41 +131,40 @@
           :line line
           })))))
 
-(defn invoke
-  "Invoke `script` with the given `args`.  The implementations of `script` is
-   found based on the current `*script-context*` value.  If no matching
-   implementation is found, then nil is returned."
-  ([script args]
-     (invoke script args nil nil))
-  ([script args file line]
-     {:pre [(::script-fn script)]}
-     (logging/tracef
-      "invoke-target [%s:%s] %s %s"
-      file line (or (:kw script) (::script-kw script))
-      (print-args args))
-     (when-let [f (best-match @(:methods script))]
-       (logging/tracef
-        "Found implementation for %s - %s invoking with %s empty? %s"
-        (:fn-name script) f (print-args args) (empty? args))
-       (apply f args))))
-
 (defn script-fn*
   "Define an abstract script function, that can be implemented differently for
    different operating systems. Calls to functions defined by `script-fn*` are
    dispatched based on the `*script-context*` vector."
   [fn-name args]
-  `(with-meta
-     {::script-fn true
-      :fn-name ~(keyword (name fn-name))
-      :methods (atom {})}
-     {:arglists ~(list 'quote (list (vec args)))}))
+  (let [;; replace any destructuring with simple vars
+        arglist (map #(if (symbol? %) % (gensym "arg")) args)
+        ;; if we're passed vargs, then we name the vargs, so we don't
+        ;; have to interpret any destructuring in the actual vararg
+        ;; argument in args.
+        is-vargs? (some #{'&} arglist)
+        varg (when is-vargs? (gensym "varg"))
+        arglist (if is-vargs?
+                  (concat (butlast arglist) [varg])
+                  arglist)
+        fwdargs (if is-vargs?
+                  `(concat [~@(butlast (butlast arglist))] ~varg)
+                  (vec arglist))]
+    `(let [m# (with-meta
+                {::script-fn true
+                 :fn-name ~(keyword (name fn-name))
+                 :methods (atom {})}
+                {:arglists ~(list 'quote (list (vec args)))})]
+       (with-meta
+         (fn ~fn-name [~@arglist]
+           (dispatch m# ~fwdargs))
+         m#))))
 
 (defmacro script-fn
   "Define an abstract script function, that can be implemented differently for
    different operating systems. Calls to functions defined by `script-fn` are
    dispatched based on the `*script-context*` vector."
   ([[& args]]
-     (script-fn* :anonymous args))
+     (script-fn* 'anonymous args))
   ([fn-name [& args]]
      (script-fn* fn-name args)))
 
@@ -189,10 +188,8 @@
    indication whether the implementation is a match for the `*script-context*`
    passed as the function's first argument."
   [script specialisers f]
-  {:pre [(::script-fn script)]}
-  (swap! (:methods script) assoc specialisers f))
-
-;;; Dispatch mechanisms for stevedore
+  {:pre [(::script-fn (meta script))]}
+  (swap! (:methods (meta script)) assoc specialisers f))
 
 (defmacro defimpl
   "Define a script function implementation for the given `specialisers`.
@@ -213,12 +210,3 @@
   `(implement
     ~script ~specialisers
     (fn [~@args] (stevedore/script ~@body))))
-
-(defn script-fn-dispatch
-  "Optional dispatching of script functions"
-  [script-fn args ns file line]
-  (dispatch script-fn args file line))
-
-;;; Link stevedore to the dispatch mechanism
-
-(stevedore/script-fn-dispatch! script-fn-dispatch)

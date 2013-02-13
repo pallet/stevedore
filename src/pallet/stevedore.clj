@@ -7,6 +7,7 @@
    The result of a `script` form is a string."
   (:require
    [clojure.java.io :as io]
+   [clojure.set :refer [union]]
    [clojure.string :as string]
    [clojure.tools.logging :refer [tracef]]
    [clojure.walk :as walk]
@@ -67,6 +68,27 @@
   [& forms]
   `(with-source-line-comments nil (emit-script (quasiquote ~forms))))
 
+;;; * Keyword and Operator Classes
+(def
+  ^{:doc
+    "Special forms are handled explcitly by an implementation of
+     `emit-special`."
+    :internal true}
+  special-forms
+  #{'if 'if-not 'when 'when-not 'case 'aget 'aset 'get 'defn 'return 'set!
+    'var 'defvar 'let 'local 'literally 'deref 'do 'str 'quoted 'apply
+    'file-exists? 'directory? 'symlink? 'readable? 'writeable? 'empty?
+    'not 'println 'print 'group 'pipe 'chain-or
+    'chain-and 'while 'doseq 'merge! 'assoc! 'alias})
+
+(def ^:internal operators
+  "Operators that should not be resolved."
+  #{'+ '- '/ '* '% '== '= '< '> '<= '>= '!= '<< '>> '<<< '>>> '& '| '&& '||
+    'and 'or})
+
+(def ^:internal unresolved
+  "Set of symbols that should not be resolved."
+  (union special-forms operators))
 
 ;;; Public script combiners
 ;;;
@@ -77,7 +99,6 @@
 ;;;  => (script
 ;;;       (ls)
 ;;;       (ls))
-
 (defmulti do-script
   "Concatenate multiple scripts."
   (fn [& scripts] *script-language*))
@@ -215,10 +236,12 @@
             *script-file* ~file]
     ~@body))
 
+(def ^:dynamic *apply-form-meta* true)
+
 (defn- form-meta
   [new-form form ]
   (tracef "form-meta %s %s" form (meta form))
-  (if-let [m (meta form)]
+  (if-let [m (and *apply-form-meta* (meta form))]
     (if (number? new-form)
       new-form
       `(with-meta ~new-form ~(merge {:file *file*} (meta form))))
@@ -278,6 +301,7 @@
 (defn- handle-unquote-splicing [form]
   (form-meta (list `splice (second form)) form))
 
+(def resolve-script-fns true)
 
 ;; These functions are used for an initial scan over stevedore forms
 ;; resolving escaping to Clojure and quoting symbols to stop namespace
@@ -292,27 +316,31 @@
   [inner outer form]
   (tracef "walk %s %s" form (meta form))
   (cond
-   (list? form) (outer (form-meta (apply list (map inner form)) form))
+   (list? form) (outer (with-meta
+                        (if (and resolve-script-fns
+                                 (symbol? (first form))
+                                 (not (unresolved (first form))))
+                          (list* (first form) (map inner (rest form)))
+                          (list* (map inner form)))
+                        (meta form)))
    (instance? clojure.lang.IMapEntry form) (outer (vec (map inner form)))
-   (seq? form) (outer (form-meta (doall (map inner form)) form))
-   (coll? form) (outer (form-meta (into (empty form) (map inner form)) form))
+   (seq? form) (outer (with-meta (doall (map inner form)) (meta form)))
+   (coll? form) (outer (with-meta
+                         (into (empty form) (map inner form))
+                         (meta form)))
    :else (outer form)))
 
 (declare inner-walk outer-walk)
 
-(defmacro quasiquote
-  [form]
-  (tracef "quasiquote %s %s" form (meta form))
-  (let [post-form (walk inner-walk outer-walk form)]
-    (tracef "quasiquote return %s" post-form)
-    (form-meta post-form form)))
-
 (defn- inner-walk [form]
   (tracef "inner-walk %s %s" form (meta form))
   (cond
-   (unquote? form) (form-meta (handle-unquote form) form)
+   (unquote? form) (handle-unquote form)
    (unquote-splicing? form) (handle-unquote-splicing form)
-   :else (form-meta (walk/walk inner-walk outer-walk form) form)))
+   (instance? clojure.lang.IObj form) (with-meta
+                                        (walk inner-walk outer-walk form)
+                                        (meta form))
+   :else (walk inner-walk outer-walk form)))
 
 (defn- outer-walk [form]
   (tracef "outer-walk %s %s" form (meta form))
@@ -321,14 +349,19 @@
    (seq? form)
    (do
      (tracef "outer-walk %s %s" form (meta form))
-     (form-meta (list* 'list form) form))
+     (form-meta (list* `list form) form))
    :else form))
 
+(defn quasiquote*
+  [form]
+  (tracef "quasiquote* %s %s" form (meta form))
+  (let [post-form (walk inner-walk outer-walk form)]
+    (tracef "quasiquote return %s" post-form)
+    post-form))
 
-                        ;; (let [s (first form)]
-                        ;;   (clojure.tools.logging/info "outer-walk %s" form)
-                        ;;   (if (symbol? s) (list 'quote s) s))
-                        ;; (rest form)
+(defmacro quasiquote
+  [form]
+  (quasiquote* form))
 
 ;;; High level string generation functions
 (def statement-separator "\n")
@@ -381,12 +414,6 @@
                       s)))))]
     code))
 
-
-
-
-
-
-
 ;;; Script argument helpers
 ;;; TODO eliminate the need for this to be public by supporting literal maps for
 ;;; expansion
@@ -417,29 +444,3 @@
         underscore (:underscore m)]
     (map-to-arg-string
      (dissoc m :assign :underscore) :assign assign :underscore underscore)))
-
-
-;; Dispatch functions for script functions
-
-(defn script-fn-dispatch-none
-  "Script function dispatch. This implementation does nothing."
-  [name args ns file line]
-  nil)
-
-(def ^{:doc "Script function dispatch." :dynamic true}
-  *script-fn-dispatch* script-fn-dispatch-none)
-
-(defn script-fn-dispatch!
-  "Set the script-fn dispatch function"
-  [f]
-  (alter-var-root #'*script-fn-dispatch* (fn [_] f)))
-
-(defmacro with-no-script-fn-dispatch
-  [& body]
-  `(binding [*script-fn-dispatch* script-fn-dispatch-none]
-     ~@body))
-
-(defmacro with-script-fn-dispatch
-  [f & body]
-  `(binding [*script-fn-dispatch* ~f]
-     ~@body))

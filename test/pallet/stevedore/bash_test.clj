@@ -1,18 +1,17 @@
 (ns pallet.stevedore.bash-test
-  (:use
-   [pallet.common.string :only [quoted]]
-   pallet.stevedore
-   clojure.test)
   (:require
    [clojure.string :as string]
-   [pallet.script :as script]
-   [pallet.stevedore.common]
-   pallet.stevedore.test-common
-   [pallet.stevedore.bash]
+   [clojure.test :refer [is testing]]
+   [clojure.tools.logging :as logging]
    [pallet.common.filesystem :as filesystem]
    [pallet.common.logging.logutils :as logutils]
    [pallet.common.shell :as shell]
-   [clojure.tools.logging :as logging]))
+   [pallet.common.string :refer [quoted]]
+   [pallet.script :as script]
+   [pallet.stevedore :refer :all]
+   [pallet.stevedore.bash :refer :all]
+   [pallet.stevedore.common]
+   [pallet.stevedore.test-common]))
 
 (defmacro current-line [] (-> &form meta :line))
 
@@ -47,16 +46,11 @@
       (.replaceAll "[ ]+" " ")
       .trim))
 
-(with-script-language :pallet.stevedore.bash/bash
-  (script
-    (.dot-method balh "lbha" "alsd")))
-
-(defn with-bash
-  [f]
-  (with-script-language :pallet.stevedore.bash/bash
-    (f)))
-
-(use-fixtures :once with-bash)
+;;; We define a macro rather than a fixture so we can run individual tests
+(defmacro deftest [name & body]
+  `(clojure.test/deftest ~name
+     (with-script-language :pallet.stevedore.bash/bash
+       ~@body)))
 
 (deftest number-literal
   (is (= "42" (script 42)))

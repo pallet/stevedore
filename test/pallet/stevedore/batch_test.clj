@@ -1,19 +1,17 @@
 (ns pallet.stevedore.batch-test
-  (:use
-   [pallet.common.string :only [quoted]]
-   pallet.stevedore
-   pallet.stevedore.batch
-   clojure.test)
   (:require
-   [pallet.stevedore.common :as common]
-   pallet.stevedore.test-common))
+   [clojure.test :refer [is testing]]
+   [pallet.common.string :refer [quoted]]
+   [pallet.stevedore :refer :all]
+   [pallet.stevedore.batch :refer :all]
+   [pallet.stevedore.common]
+   [pallet.stevedore.test-common]))
 
-(defn with-batch
-  [f]
-  (with-script-language :pallet.stevedore.batch/batch
-    (f)))
-
-(use-fixtures :once with-batch)
+;;; We define a macro rather than a fixture so we can run individual tests
+(defmacro deftest [name & body]
+  `(clojure.test/deftest ~name
+     (with-script-language :pallet.stevedore.batch/batch
+       ~@body)))
 
 ;; (deftest implementation-coverage-test
 ;;   (testing "complete `emit-special` coverage"
