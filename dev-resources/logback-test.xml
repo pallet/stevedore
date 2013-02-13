@@ -3,6 +3,9 @@
     <encoder>
       <pattern>[%thread] %logger{10} %msg%n</pattern>
     </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
   </appender>
 
   <appender name="PALLETFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
