@@ -1,0 +1,168 @@
+<html lang="en">
+  <head>
+    <title>pallet.script documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Stevedore 0.8.0-beta.1 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="pallet.script.html">pallet.script</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.script.scriptlib.html">pallet.script.scriptlib</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.html">pallet.stevedore</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.bash.html">pallet.stevedore.bash</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.batch.html">pallet.stevedore.batch</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.common.html">pallet.stevedore.common</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-*script-context*">*script-context*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-defimpl">defimpl</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-defscript">defscript</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-dispatch">dispatch</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-implement">implement</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-script-fn">script-fn</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-script-fn*">script-fn*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-with-script-context">with-script-context</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-with-template">with-template</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">pallet.script documentation</h2>
+        <div class="doc"><p>Base infrastructure for script generation, and operating system abstraction.</p>
+
+<p><code>defscript</code> defines an abstract script function, that can be implemented
+for different operating system (and version) targets.</p>
+
+<p><code>implement</code> is used to add an implementation to a function defined with
+<code>defscript</code>.</p>
+
+<p>Dispatch of <code>defscript</code> is based on an implementation's specialisers vector.
+All elements of the specialisers vector must match <code>*script-context*</code>.  The
+specialisers vector may contain keywords that match if the are in
+<code>*script-context*</code>, sets of keywords that match if any of the set values are
+in <code>*script-context*</code>, or functions that will be passed <code>*script-context*</code> as
+an argument and should return a truth value indicating whether a match
+occured.</p>
+
+<p>Mutiple implementations may match the <code>*script-context*</code> vector, and the
+best fit is determined by the highest number of matching specialiser
+functions, with ties decided by the earliest defined implementation.</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3><a id="var-*script-context*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L27">*script-context*</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Determine the target to generate script for.
+<code>defscript</code> implementations are dispatched on this.  The value should
+be a vector, containing os-family values (e.g. <code>:ubuntu</code>), os-family and
+os-version values (e.g. <code>:centos-5.3</code>), or other keywords.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-defimpl" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L194">defimpl</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[script specialisers [&amp; args] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Define a script function implementation for the given <code>specialisers</code>.</p>
+
+<p><code>specialisers</code> should be the :default keyword, or a vector.  The
+<code>specialisers</code> vector may contain keywords, a set of keywords that provide an
+inclusive <code>or</code> match, or functions that return a truth value indication
+whether the implementation is a match for the script template passed as the
+function's first argument.</p>
+
+<p><code>body</code> is wrapped in an implicit <code>script</code> form.</p>
+
+<pre><code>(pallet.script/defscript ls [&amp; args])
+(defimpl ls :default [&amp; args] (ls ~@args))
+(defimpl ls [:windows] [&amp; args] (dir ~@args))
+</code></pre>
+</div>
+          </div><div class="public">
+            <h3><a id="var-defscript" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L171">defscript</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[fn-name &amp; args]</div>
+            
+            
+            <div class="doc"><p>Define a top level var with an abstract script function, that can be
+implemented differently for different operating systems.  Calls to functions
+defined by <code>defscript</code> are dispatched based on the <code>*script-context*</code>
+vector.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-dispatch" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L111">dispatch</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[script args]</div><div class="usage">[script args file line]</div>
+            
+            
+            <div class="doc"><p>Invoke <code>script</code> with the given <code>args</code>.  The implementations of <code>script</code> is
+found based on the current <code>*script-context*</code> value.  If no matching
+implementation is found, then a :no-script-implementation condition
+is raised.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-implement" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L182">implement</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[script specialisers f]</div>
+            
+            
+            <div class="doc"><p>Add an implementation of script for the given specialisers.
+The default implementation can be set by passing :default as the
+<code>specialisers</code> argument. <code>specialisers</code> should be the :default keyword, or a
+vector.  The <code>specialisers</code> vector may contain keywords, a set of keywords
+that provide an inclusive <code>or</code> match, or functions that return a truth value
+indication whether the implementation is a match for the <code>*script-context*</code>
+passed as the function's first argument.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-script-fn" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L162">script-fn</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[[&amp; args]]</div><div class="usage">[fn-name [&amp; args]]</div>
+            
+            
+            <div class="doc"><p>Define an abstract script function, that can be implemented differently for
+different operating systems. Calls to functions defined by <code>script-fn</code> are
+dispatched based on the <code>*script-context*</code> vector.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-script-fn*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L134">script-fn*</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[fn-name args]</div>
+            
+            
+            <div class="doc"><p>Define an abstract script function, that can be implemented differently for
+different operating systems. Calls to functions defined by <code>script-fn*</code> are
+dispatched based on the <code>*script-context*</code> vector.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-script-context" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L36">with-script-context</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[template &amp; body]</div>
+            
+            
+            <div class="doc"><p>Specify the target for script generation. <code>template</code> should be a vector of
+os-family, os-family and os-version, or other keywords.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-template" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/script.clj#L44">with-template</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[template &amp; body]</div>
+            
+            <div class="deprecated">
+              <p>Deprecated: <span class="version">0.5.0</span></p>
+            </div>
+            <div class="doc"><p>Specify the target for script generation. <code>template</code> should be a vector of
+os-family, os-family and os-version, or other keywords.
+DEPRECATED - see <code>with-script-context</code></p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>

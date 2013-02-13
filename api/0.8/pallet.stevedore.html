@@ -1,0 +1,232 @@
+<html lang="en">
+  <head>
+    <title>pallet.stevedore documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Stevedore 0.8.0-beta.1 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="pallet.script.html">pallet.script</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.script.scriptlib.html">pallet.script.scriptlib</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.html">pallet.stevedore</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.bash.html">pallet.stevedore.bash</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.batch.html">pallet.stevedore.batch</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.stevedore.common.html">pallet.stevedore.common</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-*script-language*">*script-language*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chain-commands">chain-commands</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chain-commands*">chain-commands*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chained-script">chained-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-commands">checked-commands</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-commands*">checked-commands*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-script">checked-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-do-script">do-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-do-script*">do-script*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-empty-splice">empty-splice</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-fragment">fragment</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-map-to-arg-string">map-to-arg-string</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-operators">operators</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-option-args">option-args</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-script">script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-special-forms">special-forms</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-statement">statement</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-unresolved">unresolved</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-with-line-number">with-line-number</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-with-script-language">with-script-language</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">pallet.stevedore documentation</h2>
+        <div class="doc"><p>Embed shell script in clojure.</p>
+
+<p>Shell script is embedded by wrapping in the <code>script</code> macro.
+(script (ls)) =&gt; "ls"</p>
+
+<p>The result of a <code>script</code> form is a string.</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3><a id="var-*script-language*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L219">*script-language*</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Current stevedore implementation</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-chain-commands" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L106">chain-commands</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Chain commands together. Commands are executed left-to-right and a command is
+only executed if the last command in the chain did not fail.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-chain-commands*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L124">chain-commands*</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[scripts]</div>
+            
+            
+            <div class="doc"><p>Chain commands together. Commands are executed left-to-right and a command is
+only executed if the last command in the chain did not fail.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-chained-script" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L144">chained-script</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[&amp; forms]</div>
+            
+            
+            <div class="doc"><p>Takes one or more forms. Returns a string of the forms translated into a
+chained shell script command.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-checked-commands" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L111">checked-commands</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Wrap a command in a code that checks the return value. Code to output the
+messages is added before the command.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-checked-commands*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L130">checked-commands*</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[message scripts]</div>
+            
+            
+            <div class="doc"><p>Wrap a command in a code that checks the return value. Code to output the
+messages is added before the command.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-checked-script" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L151">checked-script</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[message &amp; forms]</div>
+            
+            
+            <div class="doc"><p>Takes one or more forms. Returns a string of the forms translated into
+shell scrip.  Wraps the expression in a test for the result status.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-do-script" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L102">do-script</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Concatenate multiple scripts.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-do-script*" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L119">do-script*</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[scripts]</div>
+            
+            
+            <div class="doc"><p>Concatenate multiple scripts</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-empty-splice" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L257">empty-splice</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>The empty splice</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-fragment" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L60">fragment</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[&amp; forms]</div>
+            
+            
+            <div class="doc"><p>Takes one or more forms. Returns a string of the forms translated into
+ shell script. The returned fragment will have no source line annotations.</p>
+
+<pre><code> (fragment
+   (println "hello")
+   (ls -l "*.sh"))
+</code></pre>
+
+<p>Must be wrapped in <code>with-script-language</code>.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-map-to-arg-string" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L429">map-to-arg-string</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[m &amp; {:keys [underscore assign dash], :or {dash "--"}}]</div>
+            
+            
+            <div class="doc"><p>Output a set of command line switches from a map</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-operators" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L84">operators</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Operators that should not be resolved.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-option-args" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L440">option-args</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[{:as m}]</div>
+            
+            
+            <div class="doc"><p>Output a set of command line switches from a sequence of options</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-script" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L46">script</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[&amp; forms]</div>
+            
+            
+            <div class="doc"><p>Takes one or more forms. Returns a string of the forms translated into
+ shell script.</p>
+
+<pre><code> (script
+   (println "hello")
+   (ls -l "*.sh"))
+</code></pre>
+
+<p>Must be wrapped in <code>with-script-language</code>.  Can be wrapped in
+<code>with-source-line-comments</code> to control the generation of source line
+comments in the script.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-special-forms" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L72">special-forms</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Special forms are handled explcitly by an implementation of
+<code>emit-special</code>.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-statement" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L379">statement</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[form script]</div>
+            
+            
+            <div class="doc"><p>Emit an expression as a valid shell statement, with separator.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-unresolved" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L89">unresolved</a></h3>
+            <h4 class="var-type var" id="var-type">var</h4>
+            
+            
+            
+            <div class="doc"><p>Set of symbols that should not be resolved.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-line-number" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L232">with-line-number</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[[file line] &amp; body]</div>
+            
+            
+            <div class="doc"><p>Provide the source file and line number for use in reporting.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-with-script-language" class="source var-name" href="https://github.com/pallet/stevedore/blob/develop/src/pallet/stevedore.clj#L39">with-script-language</a></h3>
+            <h4 class="var-type macro" id="var-type">macro</h4>
+            <div class="usage">[impl &amp; body]</div>
+            
+            
+            <div class="doc"><p>Set which stevedore implementation to use. Currently supports:
+:pallet.stevedore.bash/bash</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>

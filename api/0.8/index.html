@@ -1,0 +1,118 @@
+<html lang="en">
+  <head>
+    <title>Stevedore 0.8.0-beta.1 API documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="header">
+        <h1 class="project-title">Stevedore 0.8.0-beta.1 API documentation</h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="pallet.script.html">pallet.script</a><a class="ns-link ns-name" href="pallet.script.scriptlib.html">pallet.script.scriptlib</a><a class="ns-link ns-name" href="pallet.stevedore.html">pallet.stevedore</a><a class="ns-link ns-name" href="pallet.stevedore.bash.html">pallet.stevedore.bash</a><a class="ns-link ns-name" href="pallet.stevedore.batch.html">pallet.stevedore.batch</a><a class="ns-link ns-name" href="pallet.stevedore.common.html">pallet.stevedore.common</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-index">
+        <h2 class="project-title">Stevedore 0.8.0-beta.1 API documentation</h2>
+        <div class="doc"><p>Embeds shell script in clojure</p>
+</div>
+        <div class="project-namespaces">
+          <div class="namespace">
+            <h3 href="pallet.script.html" class="ns-link"><a class="ns-link ns-name" href="pallet.script.html">pallet.script</a></h3>
+            <div class="doc"><p>Base infrastructure for script generation, and operating system abstraction.</p>
+
+<p><code>defscript</code> defines an abstract script function, that can be implemented
+for different operating system (and version) targets.</p>
+
+<p><code>implement</code> is used to add an implementation to a function defined with
+<code>defscript</code>.</p>
+
+<p>Dispatch of <code>defscript</code> is based on an implementation's specialisers vector.
+All elements of the specialisers vector must match <code>*script-context*</code>.  The
+specialisers vector may contain keywords that match if the are in
+<code>*script-context*</code>, sets of keywords that match if any of the set values are
+in <code>*script-context*</code>, or functions that will be passed <code>*script-context*</code> as
+an argument and should return a truth value indicating whether a match
+occured.</p>
+
+<p>Mutiple implementations may match the <code>*script-context*</code> vector, and the
+best fit is determined by the highest number of matching specialiser
+functions, with ties decided by the earliest defined implementation.</p>
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-*script-context*">*script-context*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-defimpl">defimpl</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-defscript">defscript</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-dispatch">dispatch</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-implement">implement</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-script-fn">script-fn</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-script-fn*">script-fn*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-with-script-context">with-script-context</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.script.html#var-with-template">with-template</a></li>
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 href="pallet.script.scriptlib.html" class="ns-link"><a class="ns-link ns-name" href="pallet.script.scriptlib.html">pallet.script.scriptlib</a></h3>
+            <div class="doc"><p>Script library for abstracting target host script differences</p>
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 href="pallet.stevedore.html" class="ns-link"><a class="ns-link ns-name" href="pallet.stevedore.html">pallet.stevedore</a></h3>
+            <div class="doc"><p>Embed shell script in clojure.</p>
+
+<p>Shell script is embedded by wrapping in the <code>script</code> macro.
+(script (ls)) =&gt; "ls"</p>
+
+<p>The result of a <code>script</code> form is a string.</p>
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-*script-language*">*script-language*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chain-commands">chain-commands</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chain-commands*">chain-commands*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-chained-script">chained-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-commands">checked-commands</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-commands*">checked-commands*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-checked-script">checked-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-do-script">do-script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-do-script*">do-script*</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-empty-splice">empty-splice</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-fragment">fragment</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-map-to-arg-string">map-to-arg-string</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-operators">operators</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-option-args">option-args</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-script">script</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-special-forms">special-forms</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-statement">statement</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-unresolved">unresolved</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-with-line-number">with-line-number</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.html#var-with-script-language">with-script-language</a></li>
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 href="pallet.stevedore.bash.html" class="ns-link"><a class="ns-link ns-name" href="pallet.stevedore.bash.html">pallet.stevedore.bash</a></h3>
+            <div class="doc">
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.bash.html#var-comma-list">comma-list</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.bash.html#var-hashlib">hashlib</a></li>
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 href="pallet.stevedore.batch.html" class="ns-link"><a class="ns-link ns-name" href="pallet.stevedore.batch.html">pallet.stevedore.batch</a></h3>
+            <div class="doc">
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                
+              </ul>
+            </div>
+          </div><div class="namespace">
+            <h3 href="pallet.stevedore.common.html" class="ns-link"><a class="ns-link ns-name" href="pallet.stevedore.common.html">pallet.stevedore.common</a></h3>
+            <div class="doc">
+</div>
+            <div class="index ns-var-links">
+              <p>Public variables and functions:</p>
+              <ul>
+                <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-compound-form%3F">compound-form?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-emit-function">emit-function</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-emit-function-call">emit-function-call</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-emit-special">emit-special</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-infix-operator%3F">infix-operator?</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.stevedore.common.html#var-special-form%3F">special-form?</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>
