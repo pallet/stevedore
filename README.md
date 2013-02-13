@@ -17,7 +17,7 @@ Installation is with maven or your favourite maven repository aware build tool.
 ### lein/cake project.clj
 
 ```clj
-:dependencies [[org.cloudhoist/stevedore "0.7.3"]]
+:dependencies [[org.cloudhoist/stevedore "0.8.0-beta.1"]]
 :repositories {"sonatype"
                "http://oss.sonatype.org/content/repositories/releases"}
 ```
@@ -29,7 +29,7 @@ Installation is with maven or your favourite maven repository aware build tool.
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>stevedore</artifactId>
-    <version>0.7.2</version>
+    <version>0.8.0-beta.1</version>
   </dependency>
 <dependencies>
 
@@ -45,4 +45,4 @@ Installation is with maven or your favourite maven repository aware build tool.
 
 Licensed under [EPL](http://www.eclipse.org/legal/epl-v10.html)
 
-Copyright 2010, 2011, 2012 Hugo Duncan.
+Copyright 2010, 2011, 2012, 2013 Hugo Duncan.
