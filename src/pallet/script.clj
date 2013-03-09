@@ -68,7 +68,7 @@
      - A function specialiser matches if it returns true when passed
       `*script-context*`"
   [specialiser]
-  {:pre [*script-context* (seq *script-context*)]}
+  {:pre [(bound? #'*script-context*) *script-context* (seq *script-context*)]}
   (cond
    (keyword? specialiser) (some #(= specialiser %) *script-context*)
    (set? specialiser) (some #(specialiser %) *script-context*)
