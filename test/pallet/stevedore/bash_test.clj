@@ -399,20 +399,23 @@
 (deftest unquote-splicing-test
   (is (script= "a b c" (script ~@["a" "b" "c"])))
   (is (script= "x" (script x ~@[])))
-  (is (script= "x" (script (x ~@[]))))
+  (is (script= "x" (script ("x" ~@[]))))
+  (is (script= "x" (script ("x" ~@(list)))))
   (let [x ["a" "b" "c"]]
     (is (script= "a b c" (script ~@x))))
   (let [x []]
     (is (script= "x" (script x ~@x))))
   (let [x nil]
-    (is (script= "" (script ~@x))))
+    (is (script= "" (script ~@x)))
+    (is (script= "a" (script (str "a" ~@x)))))
   (let [x []]
     (is (script= "" (script ~@x))))
   (let [fx (fn [] ["a" "b" "c"])]
-    (is (script= "a b c" (script ~@(fx)))))
+    (is (script= "a b c" (script ~@(fx))))
+    (is (script= "abc" (script (str ~@(fx))))))
   (let [xfn (script/script-fn [& args])]
     (script/defimpl xfn :default [& args]
-      ("xfn" ~args))
+      ("xfn" ~@args))
     (let [x nil]
       (is (script= "xfn" (script (xfn ~@x)))))
     (let [x [:a 1]]

@@ -6,7 +6,7 @@
   (:use
    [pallet.stevedore.common]
    [pallet.stevedore
-    :only [emit emit-do empty-splice special-forms with-source-line-comments]]
+    :only [emit emit-do special-forms splice-seq with-source-line-comments]]
    [pallet.common.string :only [quoted substring underscore]]))
 
 (derive ::bash :pallet.stevedore.common/common-impl)
@@ -261,9 +261,6 @@
 ;;
 ;;(defmethod emit [::bash java.lang.Object] [expr]
 ;;  (str expr))
-
-(defmethod emit [::bash empty-splice] [expr]
-  "")
 
 (defmethod emit [::bash clojure.lang.IPersistentVector] [expr]
   (str (if *delimited-sequence* "(" "")

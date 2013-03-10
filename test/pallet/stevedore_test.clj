@@ -51,3 +51,9 @@
         (testing "special-forms are quoted"
           (is (= `((list '~'str 1))
                  (quasiquote* '[(str 1)]))))))))
+
+(deftest splice-args-test
+  (is (= ["a" "b" "c"]
+         (splice-args ["a" "b" "c"])))
+  (is (= ["a" "b" "c"]
+         (splice-args ["a" '(:pallet.stevedore/splice ["b" "c"])]))))
