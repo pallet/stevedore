@@ -214,8 +214,8 @@
 (defmethod emit-special [::bash 'str] [type [str & args]]
   (apply clojure.core/str (map emit args)))
 
-(defmethod emit-special [::bash 'quoted] [type [quoted arg]]
-  (common-string/quoted (emit arg)))
+(defmethod emit-special [::bash 'quoted] [type [quoted & args]]
+  (common-string/quoted (string/join " " (map emit args))))
 
 (defmethod emit-special [::bash 'println] [type [println & args]]
   (str "echo " (string/join " " (map emit args))))
