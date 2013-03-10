@@ -188,7 +188,7 @@
 ;;
 ;; 4. A string results from the form.
 
-(defmulti emit
+(defmulti ^String emit
   "Emit a shell expression as a string. Dispatched on the :type of the
    expression."
   (fn [ expr ] [*script-language* (type expr)]))
@@ -369,7 +369,7 @@
 
 (defn statement
   "Emit an expression as a valid shell statement, with separator."
-  [form script]
+  [form ^String script]
   ;; check the substring count, as it can be negative if there is a syntax issue
   ;; in a stevedore expression, and generates a cryptic error message otherwise
   (let [n (- (count script) (count statement-separator))
@@ -381,7 +381,7 @@
            statement-separator)
       script)))
 
-(declare emit)
+(declare ^String emit)
 
 (defn emit-do [exprs]
   (->> exprs
