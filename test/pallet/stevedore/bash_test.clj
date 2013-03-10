@@ -60,13 +60,13 @@
   (is (= "" (script ""))))
 
 (deftest simple-call-test
-  (is (script= "a b" (script (a b))))
-  (is (= "a b" (with-source-line-comments nil (script (a b)))))
-  (is (= (str "    # bash_test.clj:" (current-line) "\na b") (script (a b)))
+  (is (script= "a b" (script ("a" b))))
+  (is (= "a b" (with-source-line-comments nil (script ("a" b)))))
+  (is (= (str "    # bash_test.clj:" (current-line) "\na b") (script ("a" b)))
       "has source comment on first symbol only (not on args)"))
 
 (deftest call-multi-arg-test
-  (is (script= "a b c" (script (a b c)))))
+  (is (script= "a b c" (script ("a" b c)))))
 
 (deftest test-arithmetic
   (is (script= "(x * y)" (script (* x y)))))
@@ -77,7 +77,7 @@
 (deftest test-script-call
   (let [name "name1"]
     (is (script= "grep \"^name1\" /etc/passwd"
-           (script (grep ~(str "\"^" name "\"") "/etc/passwd"))))))
+           (script ("grep" ~(str "\"^" name "\"") "/etc/passwd"))))))
 
 
 (deftest test-clj
@@ -98,12 +98,12 @@
 (deftest test-fn
   (is (thrown? java.lang.AssertionError
                (strip-ws (script (defn [x y]
-                                   (foo a) (bar b)))))
+                                   ("foo" a) ("bar" b)))))
       "anonymous")
 
   (is (script=
        "foo() {\nx=$1\ny=$2\nfoo a\nbar b\n}"
-       (strip-ws (script (defn foo [x y] (foo a) (bar b)))))
+       (strip-ws (script (defn foo [x y] ("foo" a) ("bar" b)))))
       "without flags")
 
   (is (script=
@@ -111,7 +111,7 @@
             "FLAGS \"$@\" || exit 1\n"
             "eval set -- \"${FLAGS_ARGV}\"\nfoo a\nbar b\n}")
        (strip-ws (script (defn foo [[:string "host" "h" "Doc" "default"]]
-                           (foo a) (bar b)))))
+                           ("foo" a) ("bar" b)))))
       "with flags only")
 
   (is (script=
@@ -120,7 +120,7 @@
             "eval set -- \"${FLAGS_ARGV}\"\nx=$1\ny=$2\nfoo a\nbar b\n}")
        (strip-ws (script (defn foo [x y
                                     [:string "host" "h" "Doc" "default"]]
-                           (foo a) (bar b)))))
+                           ("foo" a) ("bar" b)))))
       "with flags and arguments")
 
   (is (script=
@@ -131,7 +131,7 @@
                            "This is doc"
                            [x y
                             [:string "host" "h" "Doc" "default"]]
-                           (foo a) (bar b)))))
+                           ("foo" a) ("bar" b)))))
       "with docstring and arguments"))
 
 
@@ -151,7 +151,7 @@
   (is (thrown? clojure.lang.ExceptionInfo (script (var foo-bar 1)))))
 
 (deftest alias-test
-  (is (script= "alias foo='ls -l'" (script (alias foo (ls -l))))))
+  (is (script= "alias foo='ls -l'" (script (alias foo ("ls" -l))))))
 
 (deftest test-array
   (is (script= "(1 2 \"3\" foo)" (script [1 "2" "\"3\"" :foo]))))
@@ -166,7 +166,7 @@
          (bash-out
           (script (if (&& (== foo foo) (!= foo baz)) (println "fred"))))))
   (is (script= "if foo; then\nx=3\nfoo x\nelse\ny=4\nbar y\nfi"
-               (script (if foo (do (var x 3) (foo x)) (do (var y 4) (bar y))))))
+               (script (if foo (do (var x 3) ("foo" x)) (do (var y 4) ("bar" y))))))
   (is (= "not foo\n"
          (bash-out (script (if (== foo bar)
                              (do (println "foo"))
@@ -189,7 +189,7 @@
        (let [condition (script (and (= a 1) "file1"))]
          (script (if (not ~condition) (println "foo"))))))
   (is (script= "if ! ( grep aa file1 ); then echo foo;fi"
-               (script (if (not (grep "aa" "file1")) (println "foo")))))
+               (script (if (not ("grep" "aa" "file1")) (println "foo")))))
   (is (script= "if ! ( [ -e file1 ] ) || [ \"a\" == \"b\" ]; then echo foo;fi"
                (script (if (|| (not (file-exists? "file1")) (== "a" "b"))
                          (println "foo")))))
@@ -199,7 +199,7 @@
   (testing "an expression"
     (is (script= "if ! ( [ -e md5 ] ) || ls file; then echo 1;fi"
                  (script (if (|| (not (file-exists? "md5"))
-                                 (ls "file"))
+                                 ("ls" "file"))
                            (println 1)))))))
 
 (deftest if-nested-test
@@ -232,25 +232,25 @@
   (is (script= "if [ \"foo\" == \"bar\" ]; then\necho fred\nfi"
                (script (when (= foo bar) (println fred)))))
   (is (script= "if foo; then\nx=3\nfoo x\nfi"
-               (script (when foo (var x 3) (foo x))))))
+               (script (when foo (var x 3) ("foo" x))))))
 
 (deftest test-when-not
   (is (script= "if ! ( [ \"foo\" == \"bar\" ] ); then\necho fred\nfi"
                (script (when-not  (= foo bar) (println fred)))))
   (is (script= "if ! ( foo ); then\nx=3\nfoo x\nfi"
-               (script (when-not foo (var x 3) (foo x))))))
+               (script (when-not foo (var x 3) ("foo" x))))))
 
 (deftest test-case
   (is (script= "case ${X} in\n1)\nsomething;;\n\"2\")\nsomething else;;\nesac"
                (script (case @X
-                         1 (something)
-                         ~(quoted "2") (something else))))))
+                         1 ("something")
+                         ~(quoted "2") ("something" else))))))
 
 (deftest test-doseq
   (is (script= "for X in 1 2 3; do\nsomething ${X}\ndone"
-               (script (doseq [X [1 2 3]] (something @X)))))
+               (script (doseq [X [1 2 3]] ("something" @X)))))
   (is (script= "for X in $(ls); do\nsomething ${X}\ndone"
-               (script (doseq [X @(ls)] (something @X))))))
+               (script (doseq [X @("ls")] ("something" @X))))))
 
 
 (deftest test-map
@@ -303,7 +303,7 @@
 
 (deftest deref-test
   (is (script= "${TMPDIR-/tmp}" (script @TMPDIR-/tmp)))
-  (is (script= "$(ls)" (script @(ls))))
+  (is (script= "$(ls)" (script @("ls"))))
   (is (bash-out (checked-commands "ls"))))
 
 (deftest test-combine-forms
@@ -343,8 +343,8 @@
                (chain-commands "fred\n\n" nil "blogs\n"))))
 
 (deftest chain-script-test
-  (is (script= "fred" (chained-script (fred))))
-  (is (script= "fred && \\\nblogs" (chained-script (fred) (blogs)))))
+  (is (script= "fred" (chained-script ("fred"))))
+  (is (script= "fred && \\\nblogs" (chained-script ("fred") ("blogs")))))
 
 (deftest checked-commands-test
   (is (script=
@@ -362,8 +362,8 @@
 
 (deftest checked-script-test
   (is (script-no-ws=
-       (checked-commands "msg" (script ls) (script ls))
-       (checked-script "msg" (ls) (ls))))
+       (checked-commands "msg" (script "ls") (script "ls"))
+       (checked-script "msg" ("ls") ("ls"))))
   (is (script=
        (str "echo 'test...';\n{\necho fred && \\\necho tom\n } || "
             "{ echo '#> test : FAIL'; exit 1;} >&2 "
@@ -379,18 +379,18 @@
 
 (deftest group-test
   (is (script= "{ ls; }"
-               (script (group (ls)))))
+               (script (group ("ls")))))
   (is (script= "{ ls; ls; }"
-               (script (group (ls) (ls))))))
+               (script (group ("ls") ("ls"))))))
 
 (deftest pipe-test
   (is (script= "ls"
-               (script (pipe (ls)))))
+               (script (pipe ("ls")))))
   (is (script= "ls | \\\nls"
-               (script (pipe (ls) (ls)))))
+               (script (pipe ("ls") ("ls")))))
   (is (= "2"
          (string/trim (bash-out
-                       (script (pipe (echo "one two") (wc -w))))))))
+                       (script (pipe (println "one two") ("wc" -w))))))))
 
 (deftest empty?-test
   (is (script= "if [ -z ${a} ]; then echo true;fi"
