@@ -2,6 +2,14 @@
 
 The latest stable release is 0.7.3.
 
+## 0.8.0-beta.2
+
+- Allow mulitple arguments to quote
+
+- Remove reflection warnings
+
+- Fix unquote splicing
+
 ## 0.8.0-beta.1
 
 - Change groupID to com.palletops

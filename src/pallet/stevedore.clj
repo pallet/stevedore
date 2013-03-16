@@ -188,7 +188,7 @@
 ;;
 ;; 4. A string results from the form.
 
-(defmulti emit
+(defmulti ^String emit
   "Emit a shell expression as a string. Dispatched on the :type of the
    expression."
   (fn [ expr ] [*script-language* (type expr)]))
@@ -255,27 +255,24 @@
 ;; These are a set of splicing utility functions.
 
 (def
-  ^{:doc "The empty splice"}
-  empty-splice
-    ::empty-splice)
+  ^{:doc "A sequence to splice"}
+  splice-seq
+  ::splice)
 
-(defn- splice-list
-  "Emit a collection as a space separated list.
-       (splice-list [a b c]) => \"a b c\""
+(defn splice-list
+  "Mark a collection for splicing"
   [coll]
-  (if (seq coll)
-    (string/join " " coll)
-    ;; to maintain unquote splicing semantics, this term has to disappear
-    ;; from the result
-    empty-splice))
+  (list ::splice coll))
 
-(defn filter-empty-splice
+(defn splice-args
   [args]
-  (filter #(not= empty-splice %) args))
-
+  (mapcat
+   #(if (and (coll? %) (= ::splice (first %)))
+      (second %)
+      [%])
+   args))
 
 ;; Unquote/splicing handling utility functions.
-
 (defn- unquote?
   "Tests whether the form is (clj ...) or (unquote ...) or ~expr."
   [form]
@@ -292,14 +289,8 @@
 (defn- handle-unquote [form]
   (second form))
 
-(declare emit)
-(defn splice [form]
-  (if (seq form)
-    (string/join " " (map emit form))
-    empty-splice))
-
 (defn- handle-unquote-splicing [form]
-  (form-meta (list `splice (second form)) form))
+  (list `splice-list (second form)))
 
 (def resolve-script-fns true)
 
@@ -311,18 +302,18 @@
   functions.  Applies inner to each element of form, building up a
   data structure of the same type, then applies outer to the result.
   Recognizes all Clojure data structures. Consumes seqs as with doall."
-
-  {:added "1.1"}
   [inner outer form]
-  (tracef "walk %s %s" form (meta form))
+  (tracef "walk %s %s %s" form (meta form) (class form))
   (cond
-   (list? form) (outer (with-meta
-                        (if (and resolve-script-fns
-                                 (symbol? (first form))
-                                 (not (unresolved (first form))))
-                          (list* (first form) (map inner (rest form)))
-                          (list* (map inner form)))
-                        (meta form)))
+   (or (list? form) (instance? clojure.lang.Cons form))
+   (outer (with-meta
+            (if (and resolve-script-fns
+                     (symbol? (first form))
+                     (not (unresolved (symbol (name (first form))))))
+              (list* (first form) (map inner (rest form)))
+              (list* (map inner form)))
+            (meta form)))
+
    (instance? clojure.lang.IMapEntry form) (outer (vec (map inner form)))
    (seq? form) (outer (with-meta (doall (map inner form)) (meta form)))
    (coll? form) (outer (with-meta
@@ -333,7 +324,7 @@
 (declare inner-walk outer-walk)
 
 (defn- inner-walk [form]
-  (tracef "inner-walk %s %s" form (meta form))
+  (tracef "inner-walk %s %s" form (meta form) (class form))
   (cond
    (unquote? form) (handle-unquote form)
    (unquote-splicing? form) (handle-unquote-splicing form)
@@ -343,12 +334,12 @@
    :else (walk inner-walk outer-walk form)))
 
 (defn- outer-walk [form]
-  (tracef "outer-walk %s %s" form (meta form))
+  (tracef "outer-walk %s %s %s" form (meta form) (class form))
   (cond
    (symbol? form) (form-meta (list 'quote form) form)
    (seq? form)
    (do
-     (tracef "outer-walk %s %s" form (meta form))
+     (tracef "outer-walk 2 %s %s %s" form (meta form) (class form))
      (form-meta (list* `list form) form))
    :else form))
 
@@ -378,7 +369,7 @@
 
 (defn statement
   "Emit an expression as a valid shell statement, with separator."
-  [form script]
+  [form ^String script]
   ;; check the substring count, as it can be negative if there is a syntax issue
   ;; in a stevedore expression, and generates a cryptic error message otherwise
   (let [n (- (count script) (count statement-separator))
@@ -390,28 +381,27 @@
            statement-separator)
       script)))
 
+(declare ^String emit)
+
 (defn emit-do [exprs]
-  (let [exprs (filter-empty-splice exprs)]
-    (->> exprs
-         (map emit)
-         (map statement exprs)
-         string/join)))
+  (->> exprs
+       (map emit)
+       (map statement exprs)
+       string/join))
 
 (defn emit-script
   [forms]
   (tracef "emit-script %s" forms)
   (tracef "emit-script metas %s" (vec (map meta forms)))
   (let [code (if (> (count forms) 1)
-               (emit-do (filter-empty-splice forms))
+               (emit-do forms)
                (let [form (first forms)
                      m (meta form)]
-                 (if (= form empty-splice)
-                   ""
-                   (let [s (emit form)]
-                     (str
-                      (when (and m *src-line-comments* (not (string/blank? s)))
-                        (script-location-comment m))
-                      s)))))]
+                 (let [s (emit form)]
+                   (str
+                    (when (and m *src-line-comments* (not (string/blank? s)))
+                      (script-location-comment m))
+                    s))))]
     code))
 
 ;;; Script argument helpers

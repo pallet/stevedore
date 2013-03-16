@@ -10,16 +10,14 @@ See [tests](https://github.com/pallet/stevedore/tree/develop/test/pallet/stevedo
 ## Installation
 
 stevedore is distributed as a jar, and is available in the
-[sonatype repository](http://oss.sonatype.org/content/repositories/releases/org/cloudhoist).
+[clojars repository](http://clojars.org/com.palletops/stevedore).
 
-Installation is with maven or your favourite maven repository aware build tool.
+Installation is with lein or your favourite maven repository aware build tool.
 
-### lein/cake project.clj
+### lein project.clj
 
 ```clj
-:dependencies [[org.cloudhoist/stevedore "0.8.0-beta.1"]]
-:repositories {"sonatype"
-               "http://oss.sonatype.org/content/repositories/releases"}
+:dependencies [[com.palletops/stevedore "0.8.0-beta.2"]]
 ```
 
 ### maven pom.xml
@@ -27,16 +25,16 @@ Installation is with maven or your favourite maven repository aware build tool.
 ```xml
 <dependencies>
   <dependency>
-    <groupId>org.cloudhoist</groupId>
+    <groupId>com.palletops</groupId>
     <artifactId>stevedore</artifactId>
-    <version>0.8.0-beta.1</version>
+    <version>0.8.0-beta.2</version>
   </dependency>
 <dependencies>
 
 <repositories>
   <repository>
-    <id>sonatype</id>
-    <url>http://oss.sonatype.org/content/repositories/releases</url>
+    <id>clojars</id>
+    <url>http://clojars.org/repo</url>
   </repository>
 </repositories>
 ```

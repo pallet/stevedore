@@ -4,10 +4,9 @@
    [clojure.string :as string]
    [clojure.tools.logging :refer [tracef]]
    [pallet.stevedore
-    :refer [chain-commands checked-commands do-script emit empty-splice
-            filter-empty-splice *script-language* special-forms
-            *src-line-comments* with-script-language
-            with-source-line-comments]]))
+    :refer [chain-commands checked-commands do-script emit *script-language*
+            special-forms splice-args splice-seq *src-line-comments*
+            with-script-language with-source-line-comments]]))
 
 
 ;; Main dispatch functions.
@@ -115,51 +114,58 @@
 (defmethod emit-special [::common-impl 'invoke]
   [type form]
   (let [[fn-name-or-map & args] form]
-    (tracef "INVOKE %s %s" fn-name-or-map args)
+    (tracef "INVOKE %s %s %s" (class fn-name-or-map) fn-name-or-map args)
     (tracef "INVOKE %s" (meta form))
-    (if (fn? fn-name-or-map)
-      (try
-        (apply fn-name-or-map args)
-        (catch clojure.lang.ArityException e
-          ;; Add the script location to the error message, and use the
-          ;; unmangled script function name.
-          (throw
-           (ex-info
-            (str "Wrong number of args (" (.actual e) ") passed to: "
-                 (name (:fn-name (meta fn-name-or-map))) " "
-                 (ex-location (meta form)))
-            (merge
-             (meta fn-name-or-map)
-             {:actual (.actual e)
-              :script-fn (:fn-name (meta fn-name-or-map))})
-            e)))
-        (catch Exception e
-          ;; Add the script location and script function name to the error
-          ;; message
-          (throw
-           (ex-info
-            (str (.getMessage e) " in call to "
-                 (:fn-name (meta fn-name-or-map)) " " (ex-location form))
-            (merge
-             (meta fn-name-or-map)
-             {:script-fn (:fn-name (meta fn-name-or-map))})
-            e))))
-      (let [argseq (with-source-line-comments false
-                     (->>
-                      args
-                      filter-empty-splice
-                      (map emit)
-                      (filter (complement string/blank?))
-                      doall))]
-        (apply emit-function-call fn-name-or-map argseq)))))
+    (cond
+     (= fn-name-or-map splice-seq)
+     (string/join " " (first args))
+
+     (fn? fn-name-or-map)
+     (try
+       (apply fn-name-or-map (splice-args args))
+       (catch clojure.lang.ArityException e
+         ;; Add the script location to the error message, and use the
+         ;; unmangled script function name.
+         (throw
+          (ex-info
+           (str "Wrong number of args (" (.actual e) ") passed to: "
+                (name (:fn-name (meta fn-name-or-map))) " "
+                (ex-location (meta form)))
+           (merge
+            (meta fn-name-or-map)
+            {:actual (.actual e)
+             :script-fn (:fn-name (meta fn-name-or-map))})
+           e)))
+       (catch Exception e
+         ;; Add the script location and script function name to the error
+         ;; message
+         (throw
+          (ex-info
+           (str (.getMessage e) " in call to "
+                (:fn-name (meta fn-name-or-map)) " " (ex-location form))
+           (merge
+            (meta fn-name-or-map)
+            {:script-fn (:fn-name (meta fn-name-or-map))})
+           e))))
+
+     :else
+     (let [argseq (with-source-line-comments false
+                    (->>
+                     args
+                     splice-args
+                     (map emit)
+                     (filter (complement string/blank?))
+                     doall))]
+       (apply emit-function-call fn-name-or-map argseq)))))
 
 (defn- emit-s-expr [expr]
   (if (symbol? (first expr))
     (let [head (symbol (name (first expr))) ; remove any ns resolution
-          expr1 (conj (rest expr) head)]
+          expr1 (conj (splice-args (rest expr)) head)]
       (cond
-       (and (= (first (str head)) \.)
-            (> (count (str head)) 1)) (emit-special 'dot-method expr1)
+       (and (= (first (str head)) \.) (> (count (str head)) 1))
+       (emit-special 'dot-method expr1)
+
        (special-form? head) (emit-special head expr1)
        (infix-operator? head) (emit-infix head expr1)
        :else (emit-special 'invoke expr)))

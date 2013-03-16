@@ -1,4 +1,4 @@
-(defproject com.palletops/stevedore "0.8.0-beta.1"
+(defproject com.palletops/stevedore "0.8.0-beta.2"
   :description "Embeds shell script in clojure"
   :url "http://palletops.com"
   :license {:name "Eclipse Public License"
@@ -7,6 +7,6 @@
 
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.logging "0.2.0"]
-                 [org.cloudhoist/pallet-common "0.3.1"]]
+                 [com.palletops/pallet-common "0.4.0"]]
   :profiles
   {:dev {:dependencies [[ch.qos.logback/logback-classic "1.0.9"]]}})
