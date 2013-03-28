@@ -1,8 +1,10 @@
 # pallet.stevedore
 
-An embedding of shell script in clojure
+An embedding of shell script in clojure.
 
-See [reference documentation](http://pallet.github.com/stevedore/autodoc/index.html)
+
+See [reference documentation](http://palletops.com/doc/reference/0.8/script/),
+[api documentation](http://pallet.github.com/stevedore/autodoc/index.html)
 and [annotated source](http://pallet.github.com/stevedore/marginalia/uberdoc.html).
 
 See [tests](https://github.com/pallet/stevedore/tree/develop/test/pallet/stevedore) for usage examples.
