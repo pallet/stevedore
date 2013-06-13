@@ -355,10 +355,27 @@
    (emit val)))
 
 (defmethod emit-special [::bash 'deref]
-  [type [deref expr]]
+  [type [deref expr
+         & {:keys [default
+                   default-value
+                   default-assign
+                   default-assign-value
+                   alternate
+                   alternate-value
+                   error
+                   error-value]}]]
   (if (instance? clojure.lang.IPersistentList expr)
     (str "$(" (with-source-line-comments false (emit expr)) ")")
-    (str "${" (with-source-line-comments false (emit expr)) "}")))
+    (str "${" (with-source-line-comments false (emit expr))
+         (cond
+          default (str "-" (emit default))
+          default-value (str ":-" (emit default-value))
+          default-assign (str "=" (emit default-assign))
+          default-assign-value (str ":=" (emit default-assign-value))
+          alternate (str "+" (emit alternate))
+          alternate-value (str ":+" (emit alternate-value))
+          error (str "?" (emit error))
+          error-value (str ":?" (emit error-value)))"}")))
 
 
 (defmethod emit-special [::bash 'do] [type [ do & exprs]]

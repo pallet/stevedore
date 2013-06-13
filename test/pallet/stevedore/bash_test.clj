@@ -302,6 +302,12 @@
            (println @z))))))
 
 (deftest deref-test
+  (is (script= "${TMPDIR-/tmp}" (script (deref TMPDIR :default "/tmp"))))
+  (is (script= "${TMPDIR:-/tmp}" (script (deref TMPDIR :default-value "/tmp"))))
+  (is (script= "${TMPDIR=/tmp}" (script (deref TMPDIR :default-assign "/tmp"))))
+  (is (script= "${TMPDIR:=/tmp}" (script (deref TMPDIR
+                                                :default-assign-value "/tmp"))))
+  (is (script= "${TMPDIR-${TMP}}" (script (deref TMPDIR :default @TMP))))
   (is (script= "${TMPDIR-/tmp}" (script @TMPDIR-/tmp)))
   (is (script= "$(ls)" (script @("ls"))))
   (is (bash-out (checked-commands "ls"))))

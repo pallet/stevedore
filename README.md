@@ -1,8 +1,10 @@
 # pallet.stevedore
 
-An embedding of shell script in clojure
+An embedding of shell script in clojure.
 
-See [reference documentation](http://pallet.github.com/stevedore/autodoc/index.html)
+
+See [reference documentation](http://palletops.com/doc/reference/0.8/script/),
+[api documentation](http://pallet.github.com/stevedore/autodoc/index.html)
 and [annotated source](http://pallet.github.com/stevedore/marginalia/uberdoc.html).
 
 See [tests](https://github.com/pallet/stevedore/tree/develop/test/pallet/stevedore) for usage examples.
@@ -17,7 +19,7 @@ Installation is with lein or your favourite maven repository aware build tool.
 ### lein project.clj
 
 ```clj
-:dependencies [[com.palletops/stevedore "0.8.0-beta.2"]]
+:dependencies [[com.palletops/stevedore "0.8.0-beta.3"]]
 ```
 
 ### maven pom.xml
@@ -27,7 +29,7 @@ Installation is with lein or your favourite maven repository aware build tool.
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>stevedore</artifactId>
-    <version>0.8.0-beta.2</version>
+    <version>0.8.0-beta.3</version>
   </dependency>
 <dependencies>
 
