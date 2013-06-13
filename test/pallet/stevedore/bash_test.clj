@@ -165,39 +165,40 @@
   (is (= "fred\n"
          (bash-out
           (script (if (&& (== foo foo) (!= foo baz)) (println "fred"))))))
-  (is (script= "if foo; then\nx=3\nfoo x\nelse\ny=4\nbar y\nfi"
-               (script (if foo (do (var x 3) ("foo" x)) (do (var y 4) ("bar" y))))))
+  (is (script=
+       "if foo; then\nx=3\nfoo x\nelse\ny=4\nbar y\nfi"
+       (script (if foo (do (var x 3) ("foo" x)) (do (var y 4) ("bar" y))))))
   (is (= "not foo\n"
          (bash-out (script (if (== foo bar)
                              (do (println "foo"))
                              (do (println "not foo")))))))
   (is (script= "if [ -e file1 ]; then echo foo;fi"
                (script (if (file-exists? "file1") (println "foo")))))
-  (is (script= "if ! ( [ -e file1 ] ); then echo foo;fi"
+  (is (script= "if ! { [ -e file1 ]; }; then echo foo;fi"
                (script (if (not (file-exists? "file1")) (println "foo")))))
   (is (= "foo\n"
          (bash-out
           (script (if (not (file-exists? "file1")) (println "foo"))))))
-  (is (script= "if ! ([ -e file1 ] ); then echo foo;fi"
+  (is (script= "if ! {[ -e file1 ]; }; then echo foo;fi"
                (let [condition (script (file-exists? "file1"))]
                  (script (if (not ~condition) (println "foo"))))))
   (is (= "foo\n"
          (bash-out (let [condition (script (file-exists? "file1"))]
                      (script (if (not ~condition) (println "foo")))))))
   (is (script=
-       (str "if ! ([ \"a\" == \"1\" ] && file1 ); then echo foo;fi")
+       (str "if ! {[ \"a\" == \"1\" ] && file1; }; then echo foo;fi")
        (let [condition (script (and (= a 1) "file1"))]
          (script (if (not ~condition) (println "foo"))))))
-  (is (script= "if ! ( grep aa file1 ); then echo foo;fi"
+  (is (script= "if ! { grep aa file1; }; then echo foo;fi"
                (script (if (not ("grep" "aa" "file1")) (println "foo")))))
-  (is (script= "if ! ( [ -e file1 ] ) || [ \"a\" == \"b\" ]; then echo foo;fi"
+  (is (script= "if ! { [ -e file1 ]; } || [ \"a\" == \"b\" ]; then echo foo;fi"
                (script (if (|| (not (file-exists? "file1")) (== "a" "b"))
                          (println "foo")))))
   (testing "if block as string with newline is treated as compound"
     (is (script= "if [ -e f ]; then\nls\nls\nfi"
                  (script (if (file-exists? "f") "ls\nls")))))
   (testing "an expression"
-    (is (script= "if ! ( [ -e md5 ] ) || ls file; then echo 1;fi"
+    (is (script= "if ! { [ -e md5 ]; } || ls file; then echo 1;fi"
                  (script (if (|| (not (file-exists? "md5"))
                                  ("ls" "file"))
                            (println 1)))))))
