@@ -357,15 +357,16 @@
 ;;; High level string generation functions
 (def statement-separator "\n")
 
-(defn script-location-comment
-  [{:keys [file line]}]
-  (format "    # %s:%s\n" (.getName (io/file (or file *file*))) line))
-
 (def ^:dynamic ^:internal *src-line-comments* true)
 
 (defmacro with-source-line-comments [flag & body]
   `(binding [*src-line-comments* ~flag]
      ~@body))
+
+(defn script-location-comment
+  [{:keys [file line]}]
+  (when *src-line-comments*
+    (format "    # %s:%s\n" (.getName (io/file (or file *file*))) line)))
 
 (defn statement
   "Emit an expression as a valid shell statement, with separator."
@@ -375,7 +376,7 @@
   (let [n (- (count script) (count statement-separator))
         m (meta form)]
     (if (and (pos? n) (not (= statement-separator (.substring script n))))
-      (str (when (and m *src-line-comments* (not (string/blank? script)))
+      (str (when (and m (not (string/blank? script)))
              (script-location-comment m))
            script
            statement-separator)
@@ -399,7 +400,7 @@
                      m (meta form)]
                  (let [s (emit form)]
                    (str
-                    (when (and m *src-line-comments* (not (string/blank? s)))
+                    (when (and m (not (string/blank? s)))
                       (script-location-comment m))
                     s))))]
     code))
