@@ -2,6 +2,17 @@
 
 The latest stable release is 0.7.3.
 
+## 0.8.0-beta.3
+
+- Allow for unnamed functions in exception message
+
+- Simplify src line comment handling
+
+- Add optional keyword arguments to deref
+  The keyword arguments allow support of bashes parameter substitution
+  modifiers,
+  -, :-, =, :=, +, :+, ?, :?.
+
 ## 0.8.0-beta.2
 
 - Allow mulitple arguments to quote
