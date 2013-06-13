@@ -129,7 +129,8 @@
          (throw
           (ex-info
            (str "Wrong number of args (" (.actual e) ") passed to: "
-                (name (:fn-name (meta fn-name-or-map))) " "
+                (name (or (:fn-name (meta fn-name-or-map)) "unnamed function"))
+                " "
                 (ex-location (meta form)))
            (merge
             (meta fn-name-or-map)
