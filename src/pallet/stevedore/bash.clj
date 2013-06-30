@@ -158,7 +158,7 @@
   (str "[ -z " (emit path) " ]"))
 
 (defmethod emit-special [::bash 'not] [type [not expr]]
-  (str "! ( " (emit expr) " )"))
+  (str "! { " (emit expr) "; }"))
 
 (defmethod emit-special [::bash 'local] [type [local name expr]]
   (str "local " (emit name) "=" (emit expr)))

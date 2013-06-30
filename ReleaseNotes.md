@@ -2,6 +2,11 @@
 
 The latest stable release is 0.7.3.
 
+## 0.8.0-beta.4
+
+- Use {} for grouping of negation expressions
+  Fixes #25
+
 ## 0.8.0-beta.3
 
 - Allow for unnamed functions in exception message
