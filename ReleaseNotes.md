@@ -2,6 +2,14 @@
 
 The latest stable release is 0.7.3.
 
+## 0.8.0-beta.5
+
+- Allow vector values in map-to-arg-string
+  In pallet.stevedore/map-to-arg-string, make keys with vector values result
+  in having the switch repeated for each value in the vector.
+
+- Support using multimethods as script functions
+
 ## 0.8.0-beta.4
 
 - Use {} for grouping of negation expressions
@@ -33,7 +41,7 @@ The latest stable release is 0.7.3.
 - Use leiningen instead of maven
 
 - Symbols in argument position are resolved
-  This removes the need to deref script functions.  Script functions are 
+  This removes the need to deref script functions.  Script functions are
   now regular functions, with a custom dispatch mechanism.  Plain clojure
   functions can now be used as script functions.
 

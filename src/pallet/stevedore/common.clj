@@ -120,7 +120,7 @@
      (= fn-name-or-map splice-seq)
      (string/join " " (first args))
 
-     (fn? fn-name-or-map)
+     (or (fn? fn-name-or-map) (instance? clojure.lang.MultiFn fn-name-or-map))
      (try
        (apply fn-name-or-map (splice-args args))
        (catch clojure.lang.ArityException e

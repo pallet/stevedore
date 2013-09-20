@@ -413,9 +413,17 @@
   (let [opt (if do-underscore (underscore (name option)) (name option))]
     (if argument
       (if (> (.length opt) 1)
-        (str dash opt (if-not (= argument true)
-                        (str (if do-assign "=" " ") \" argument \")))
-        (str "-" opt (if-not (= argument true) (str " " \" argument \")))))))
+        (if (vector? argument)
+          (string/join
+           " "
+           (map #(str dash opt (str (if do-assign "=" " ") \" % \")) argument))
+          (str dash opt (if-not (= argument true)
+                          (str (if do-assign "=" " ") \" argument \"))))
+        (if (vector? argument)
+          (string/join
+           " "
+           (map #(str "-" opt (str " " \" % \")) argument))
+          (str "-" opt (if-not (= argument true) (str " " \" argument \"))))))))
 
 (defn map-to-arg-string
   "Output a set of command line switches from a map"
