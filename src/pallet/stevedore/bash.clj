@@ -413,7 +413,7 @@
 
 (defmethod emit-special [::bash 'group]
   [type [ group & exprs]]
-  (str "{ " (string/join "; " (map emit exprs)) "; }"))
+  (str "{\n" (string/join (emit-do exprs)) "}"))
 
 (defmethod emit-special [::bash 'pipe]
   [type [ pipe & exprs]]

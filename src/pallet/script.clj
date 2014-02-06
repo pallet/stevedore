@@ -118,7 +118,17 @@
   ([script args file line]
      {:pre [(:methods script)]}
      (logging/tracef "dispatch-target %s %s" script (print-args args))
-     (if-let [f (or (best-match @(:methods script)))]
+     (when-not (seq *script-context*)
+       (throw
+        (ex-info
+         (str
+          "No *script-context* available to resolve "
+          (:fn-name script))
+         {:type :stevedore/no-script-context
+          :script-fn script
+          :file file
+          :line line})))
+     (if-let [f (best-match @(:methods script))]
        (apply f args)
        (throw
         (ex-info
