@@ -2,6 +2,14 @@
 
 The latest stable release is 0.7.3.
 
+## 0.8.0-beta.6
+
+- Improve the 'group' keyword implementation in bash
+  This causes the grouping to output commands on separate lines, rather than
+  all in one line.
+
+- Throw error if `*script-context*` not set
+
 ## 0.8.0-beta.5
 
 - Allow vector values in map-to-arg-string
