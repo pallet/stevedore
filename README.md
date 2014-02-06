@@ -19,7 +19,7 @@ Installation is with lein or your favourite maven repository aware build tool.
 ### lein project.clj
 
 ```clj
-:dependencies [[com.palletops/stevedore "0.8.0-beta.5"]]
+:dependencies [[com.palletops/stevedore "0.8.0-beta.6"]]
 ```
 
 ### maven pom.xml
@@ -29,7 +29,7 @@ Installation is with lein or your favourite maven repository aware build tool.
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>stevedore</artifactId>
-    <version>0.8.0-beta.5</version>
+    <version>0.8.0-beta.6</version>
   </dependency>
 <dependencies>
 
