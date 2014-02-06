@@ -385,9 +385,9 @@
           (checked-script "test" ("test" 1 = 2)) 1 "#> test : FAIL\n"))))
 
 (deftest group-test
-  (is (script= "{ ls; }"
+  (is (script= "{\nls\n}"
                (script (group ("ls")))))
-  (is (script= "{ ls; ls; }"
+  (is (script= "{\nls\nls\n}"
                (script (group ("ls") ("ls"))))))
 
 (deftest pipe-test
