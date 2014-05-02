@@ -1,6 +1,9 @@
-# Stevedore Release Notes
+## 0.8.0-beta.7
 
-The latest stable release is 0.7.3.
+- Use posix tests for greater/less comparisons
+
+- Escape single quotes in checked-script strings
+  Closes #pallet/329
 
 ## 0.8.0-beta.6
 

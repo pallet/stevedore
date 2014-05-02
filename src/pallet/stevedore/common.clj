@@ -251,7 +251,8 @@
 
 (defmethod checked-commands ::common-impl
   [message & cmds]
-  (let [chained-cmds (apply chain-commands cmds)]
+  (let [chained-cmds (apply chain-commands cmds)
+        message (string/replace message #"'" "'\\\\''")]
     (if (string/blank? chained-cmds)
       ""
       (str

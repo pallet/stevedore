@@ -43,8 +43,10 @@
       'and "&&"
       '|| "||"
       'or "||"
-      '< "\\<"
-      '> "\\>"
+      '< "-lt"
+      '> "-gt"
+      '<= "-le"
+      '>= "-ge"
       '= "=="})
 
 (def ^{:dynamic true :private true
